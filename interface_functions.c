@@ -1,7 +1,6 @@
 // Funcitons to include in the shell interface
 //From Embedded Lab PWM excluded to modify]
 // add more funcitons for modulation part 7
-#include "tm4c123gh6pm.h"
 #include "clock.h"
 #include "uart0.h"
 #include <stdint.h>
