@@ -5,16 +5,15 @@
 #include "uart0.h"
 #include <stdint.h>
 #include <stdbool.h>
+#include <stdio.h>
 #include "uart0.h"
 #include "tm4c123gh6pm.h"
-#include "interface_functions.h"
-#include "spi1.h"
-#include "gpio.h"
 #include <math.h>
-//from uartpartone jimmie bud lab 
+//from uartpartone jimmie bud lab
 #define MAX_CHARS 80
 #define MAX_FIELDS 5
 //struct to fill the buffer
+int stringToInt(char *str);
 extern void putcUart0(char c);
 extern void putsUart0(char*str);
 extern char getcUart0();
@@ -66,7 +65,7 @@ char fieldType[MAX_FIELDS];
     }
 }
 // modified parse fields to meet voltage to I and Q requirements
-//parse fields function and  to Walk T      hrough The Buffer 
+//parse fields function and  to Walk T      hrough The Buffer
  void parseFields(USER_DATA *data)
  {
     int count = 0; // Varibale to move  through input buffer
@@ -87,23 +86,23 @@ char fieldType[MAX_FIELDS];
 
             if (flagField == 0) // position at first caracter matters not duplicates
             {
-                data->fieldPosition[countIndex] = count; 
+                data->fieldPosition[countIndex] = count;
                 //this for not copieng strings not store tokens already exsisting
-             
+
             if ((tempVar >= 'A' && tempVar <= 'Z') || (tempVar >= 'a' && tempVar <= 'z'))
                 data->fieldType[countIndex] = 'a';
             // interface shell to seperate into correct field Alpha or numerical
-        
+
             else
                 data->fieldType[countIndex] = 'n';
             //else going to numerical field
             countIndex++;
             //current token commited now
-            flagField = 1; 
+            flagField = 1;
             //to show we are inside token
         }
        }
-        else //anyhthing ese becomes a \0 for parsing 
+        else //anyhthing ese becomes a \0 for parsing
         {
             data->buffer[count] = '\0';
             flagField = 0;
@@ -129,10 +128,10 @@ int32_t getFieldInteger(USER_DATA* data, uint8_t fieldNumber)//struct buffer sta
      }
      else
      {
-        
+
          return stringToInt(&data->buffer[data->fieldPosition[fieldNumber]]);
          //parse fields buffer array of argument and turns into c strings
-         //and where token starts at field positions 
+         //and where token starts at field positions
      }
  }
   int stringToInt(char *str)
@@ -188,9 +187,9 @@ int32_t getFieldInteger(USER_DATA* data, uint8_t fieldNumber)//struct buffer sta
  }
  bool isCommand(USER_DATA *data, const char strCommand[], uint8_t minArguments)
  {
-    // ENOUGH ARGUEMENTS? CHECKING   
+    // ENOUGH ARGUEMENTS? CHECKING
     //checks the command and if it has enought arguements
-     bool isValid = true; 
+     bool isValid = true;
      //checks command is valid
      int check = data->fieldCount;
      //how many tokens typed
@@ -207,7 +206,7 @@ int32_t getFieldInteger(USER_DATA* data, uint8_t fieldNumber)//struct buffer sta
         while(true)
         {
             char tempVar = data->buffer[charIndex];
-            //reads the character from buffer input 
+            //reads the character from buffer input
             if(tempVar == '\0') break;
             //above once  the characters match the command
             //completiuon of the comparision
@@ -216,7 +215,7 @@ int32_t getFieldInteger(USER_DATA* data, uint8_t fieldNumber)//struct buffer sta
             //first mistmatch invalids the command
             {
                 isValid = false;
-                break;    
+                break;
             }
             //moving to the nect character prevents infinte lloop
             charIndex++;
@@ -224,4 +223,3 @@ int32_t getFieldInteger(USER_DATA* data, uint8_t fieldNumber)//struct buffer sta
     }
      return isValid; //final retuen if it is validdd
 }
-
