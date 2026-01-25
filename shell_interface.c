@@ -11,7 +11,7 @@
 #include "spi1.h"
 #include "gpio.h"
 #include "interface_functions.h"
-#include "wait.h"
+#include "shell_interface.h"
 
 // mcp dac accepts 12 bit (0-4095)
 //uart shell top read mV ??300 mv = .300volts
@@ -33,11 +33,13 @@ void shell(void)
 
     while(true)
     {
-        if(kbhitUart0())
-        {
+       // if(kbhitUart0())
+        //{
             getsUart0(&data);
             parseFields(&data);
             
-        }
+            putsUart0("\r\nOk\r\n");
+            
+       // }
     }
 }
