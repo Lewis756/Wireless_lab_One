@@ -92,19 +92,19 @@ char getcUart0() // modified getcUart0
 {
     //add the message “FIFO FULL” when overflow
     // wait if uart0 rx fifo empty
-    if(UART0_FR_R & UART_FR_RXFF)
-    { //fe empty
-        putsUart0("FIFO is now full\n");
+  // if(UART0_FR_R & UART_FR_RXFF)
+ //   { //fe empty
+      //putsUart0("FIFO is now full\n");
         //puts uart to put through buffer and return it as hex
-        char characters[9];
-        putsUart0("hex value is ");
-        BinarytoHex(characters,UART0_RSR_R ); //over run error
+    // char characters[9];
+       //putsUart0("hex value is ");
+      //  BinarytoHex(characters,UART0_RSR_R ); //over run error
         //printing
-        putsUart0(characters);
+      // putsUart0(characters);
         //new line
-        putsUart0("\n");
+     //  putsUart0("\n");
 
-    }
+    //}
     while (UART0_FR_R & UART_FR_RXFE);
     return UART0_DR_R & 0xFF;                        // get character from fifo
 }

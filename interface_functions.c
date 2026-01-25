@@ -9,6 +9,7 @@
 #include "uart0.h"
 #include <stdbool.h>
 #include "tm4c123gh6pm.h"
+#include "interface_functions.h"
 #include "spi1.h"
 #include "gpio.h"
 #include <math.h>
@@ -67,7 +68,7 @@ char fieldType[MAX_FIELDS];
     }
 }
 // modified parse fields to meet voltage to I and Q requirements
-//parse fields function and  to Walk Through The Buffer 
+//parse fields function and  to Walk T      hrough The Buffer 
  void parseFields(USER_DATA *data)
  {
     int count = 0; // Varibale to move  through input buffer
@@ -222,5 +223,7 @@ int32_t getFieldInteger(USER_DATA* data, uint8_t fieldNumber)//struct buffer sta
             //moving to the nect character prevents infinte lloop
             charIndex++;
      }
+    }
      return isValid; //final retuen if it is validdd
 }
+

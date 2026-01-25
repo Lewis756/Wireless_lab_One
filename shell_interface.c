@@ -10,6 +10,8 @@
 #include <math.h>
 #include "spi1.h"
 #include "gpio.h"
+#include "interface_functions.h"
+#include "wait.h"
 
 // mcp dac accepts 12 bit (0-4095)
 //uart shell top read mV ??300 mv = .300volts
