@@ -30,14 +30,20 @@ float mvToV(int16_t millivolts)
 void sendDacI(uint16_t v)
 {
     uint16_t data = 0;
-    data |= v | 0x3000; //0011 A
+    uint16_t voltage = 0;
+    //insert equation here
+    voltage = rawI + v; //(raw + slope * v)
+    data |= voltage | 0x3000; //0011 A
     writeSpi1Data(data);
 }
 
 void sendDacQ(uint16_t v)
 {
     uint16_t data = 0;
-    data |= v | 0xB000; //1011 B
+    uint16_t voltage = 0;
+    //insert equation here
+    voltage = rawQ + v; //(raw + slope * v)
+    data |= voltage | 0xB000; //1011 B
     writeSpi1Data(data);
 }
 
@@ -75,45 +81,53 @@ void shell(void)
                 if (channel == 'I')
                 {
                     rawI = value;
-                    putsUart0("RAW I set\n");
+                    putsUart0("\r\n RAW I set \r\n");
                 }
                 else //Q channel
                 {
                     rawQ = value;
-                    putsUart0("RAW Q set\n");
+                    putsUart0("\r\n RAW Q set \r\n");
                 }
             }
         }
 
-        if (isCommand(&data, "SEND", 1))
+        if (isCommand(&data, "DC", 2))
         {
             valid = true;
 
             char channel = getFieldChar(&data, 1);
+            int32_t value = getFieldInteger(&data, 2);
 
+            // Force uppercase (lower works too)
             if (channel >= 'a' && channel <= 'z')
                 channel -= 32;
 
-            if (channel == 'I')
+            if ((channel != 'I' && channel != 'Q')
+                    || (value < 0 || value > 4095))
             {
-                sendDacI(rawI);
-                putsUart0("DAC I updated\n");
-            }
-            else if (channel == 'Q')
-            {
-                sendDacQ(rawQ);
-                putsUart0("DAC Q updated\n");
+                valid = false;
             }
             else
             {
-                valid = false;
+                if (channel == 'I')
+                {
+                    dcI = value;
+                    putsUart0("\r\n DC I set \r\n");
+                    sendDacI(dcI);
+                }
+                else //Q channel
+                {
+                    dcQ = value;
+                    putsUart0("\r\n DC Q set \r\n");
+                    sendDacQ(dcQ);
+                }
             }
         }
 
         if (!valid)
         {
-            putsUart0(": Invalid command\n");
+            putsUart0(": Invalid command \r\n");
         }
-        putsUart0("\r\nOk\r\n");
+      //  putsUart0("\r\nOk\r\n");
     }
 }

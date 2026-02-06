@@ -12,8 +12,8 @@ void intHW()
     initSystemClockTo40Mhz();
     initUart0();
     initSpi1(1);
-    setSpi1BaudRate(20e6, 40e6);
-    setSpi1Mode(0, 0);
+    setSpi1BaudRate(20e6, 40e6); //unsure of values
+    setSpi1Mode(0, 0); //for now, unsure of final config
 }
 
 int main()

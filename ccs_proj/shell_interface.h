@@ -15,6 +15,8 @@
 
 uint8_t rawI;
 uint8_t rawQ;
+uint8_t dcI;
+uint8_t dcQ;
 void shell(void);
 void sendDacI(uint16_t v);
 void sendDacQ(uint16_t v);
