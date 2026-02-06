@@ -1,0 +1,10 @@
+"./clock.obj"
+"./gpio.obj"
+"./interface_functions.obj"
+"./main.obj"
+"./shell_interface.obj"
+"./spi1.obj"
+"./tm4c123gh6pm_startup_ccs.obj"
+"./uart0.obj"
+"../tm4c123gh6pm.cmd"
+-llibc.a
