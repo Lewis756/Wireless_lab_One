@@ -68,7 +68,7 @@ void initSpi1(uint32_t pinMask)
     SSI1_CR1_R &= ~SSI_CR1_SSE;                        // turn off SSI1 to allow re-configuration
     SSI1_CR1_R = 0;                                    // select master mode
     SSI1_CC_R = 0;                                     // select system clock as the clock source
-    SSI1_CR0_R = SSI_CR0_FRF_MOTO | SSI_CR0_DSS_8;     // set SR=0, 8-bit
+    SSI1_CR0_R = SSI_CR0_FRF_MOTO | SSI_CR0_DSS_16;     // set SR=0, 8-bit
 }
 
 // Set baud rate as function of instruction cycle frequency

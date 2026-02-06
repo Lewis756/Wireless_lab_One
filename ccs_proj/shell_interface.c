@@ -14,6 +14,20 @@
 #include "interface_functions.h"
 #include "shell_interface.h"
 
+// 2125 = 0V
+// 165 = +0.5V
+// 4095 = -0.5V
+
+void ldac_on()
+{
+    setPinValue(PORTF, 1, 1);
+}
+
+void ldac_off()
+{
+    setPinValue(PORTF, 1, 0);
+}
+
 // mcp dac accepts 12 bit (0-4095)
 //uart shell top read mV ??300 mv = .300volts
 // uart processing starts below
@@ -27,22 +41,24 @@ float mvToV(int16_t millivolts)
     return volts;
 }
 
-void sendDacI(uint16_t v)
+void sendDacI(float v)
 {
     uint16_t data = 0;
     uint16_t voltage = 0;
     //insert equation here
-    voltage = rawI + v; //(raw + slope * v)
+    voltage = 2125 + -3940 * v; //(raw + slope * v)
+
     data |= voltage | 0x3000; //0011 A
     writeSpi1Data(data);
 }
 
-void sendDacQ(uint16_t v)
+void sendDacQ(float v)
 {
     uint16_t data = 0;
     uint16_t voltage = 0;
     //insert equation here
-    voltage = rawQ + v; //(raw + slope * v)
+    voltage = rawQ; //(raw + slope * v)
+
     data |= voltage | 0xB000; //1011 B
     writeSpi1Data(data);
 }
@@ -82,11 +98,17 @@ void shell(void)
                 {
                     rawI = value;
                     putsUart0("\r\n RAW I set \r\n");
+                    sendDacI(dcI);
+                    ldac_off();
+                    ldac_on();
                 }
                 else //Q channel
                 {
                     rawQ = value;
                     putsUart0("\r\n RAW Q set \r\n");
+                    sendDacQ(dcQ);
+                    ldac_off();
+                    ldac_on();
                 }
             }
         }
@@ -94,7 +116,7 @@ void shell(void)
         if (isCommand(&data, "DC", 2))
         {
             valid = true;
-
+            float temp = 0;
             char channel = getFieldChar(&data, 1);
             int32_t value = getFieldInteger(&data, 2);
 
@@ -109,17 +131,22 @@ void shell(void)
             }
             else
             {
+                temp = mvToV(value);
                 if (channel == 'I')
                 {
-                    dcI = value;
+                    dcI = temp;
                     putsUart0("\r\n DC I set \r\n");
                     sendDacI(dcI);
+                    ldac_off();
+                    ldac_on();
                 }
                 else //Q channel
                 {
-                    dcQ = value;
+                    dcQ = temp;
                     putsUart0("\r\n DC Q set \r\n");
                     sendDacQ(dcQ);
+                    ldac_off();
+                    ldac_on();
                 }
             }
         }

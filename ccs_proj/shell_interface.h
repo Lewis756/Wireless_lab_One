@@ -13,12 +13,12 @@
 
 #include <stdbool.h>
 
-uint8_t rawI;
-uint8_t rawQ;
-uint8_t dcI;
-uint8_t dcQ;
+uint16_t rawI;
+uint16_t rawQ;
+float dcI;
+float dcQ;
 void shell(void);
-void sendDacI(uint16_t v);
-void sendDacQ(uint16_t v);
+void sendDacI(float v);
+void sendDacQ(float v);
 
 #endif
