@@ -17,7 +17,8 @@
 // 2125 = 0V
 // 165 = +0.5V
 // 4095 = -0.5V
-
+//DAC A = i channel
+//DAC B = q channel
 void ldac_on()
 {
     setPinValue(PORTF, 1, 1);
@@ -57,7 +58,9 @@ void sendDacQ(float v)
     uint16_t data = 0;
     uint16_t voltage = 0;
     //insert equation here
-    voltage = rawQ; //(raw + slope * v)
+    //voltage = rawQ; //(raw + slope * v)
+    //we can fix now and use voltage ?? not raw
+    voltage = 2125 + -3940 * v; // no more raw?!
 
     data |= voltage | 0xB000; //1011 B
     writeSpi1Data(data);
@@ -66,6 +69,20 @@ void sendDacQ(float v)
 // now volts to dac code
 // when dac gets code the op amp, the outputvoltage is measured
 //when type a voltage compute the dac code
+// write to BOTH at the same time ! Raw?
+void writeDacAB(uint16_t rawI, uint16_t rawQ)
+{
+    //preserve 16 bit and and cleaer to write to correct channel
+    uint16_t spitransferA = ((rawI & 0x0FFF) | 0x3000); //configured to A
+    uint16_t spitransferB = ((rawQ & 0x0fff) | 0xB000); //configured to B
+    // send to both now
+    writeSpi1Data(spitransferA);
+    writeSpi1Data(spitransferB);
+    //latch them
+    ldac_off();
+    ldac_on();
+
+}
 void shell(void)
 {
     USER_DATA data;
@@ -98,17 +115,19 @@ void shell(void)
                 {
                     rawI = value;
                     putsUart0("\r\n RAW I set \r\n");
-                    sendDacI(dcI);
-                    ldac_off();
-                    ldac_on();
+                    //sendDacI(dcI); to debug
+                    //ldac_off();
+                    //ldac_on();
+                    writeDacAB(rawI,rawQ); //lathced lar in funciton
                 }
                 else //Q channel
                 {
                     rawQ = value;
                     putsUart0("\r\n RAW Q set \r\n");
-                    sendDacQ(dcQ);
-                    ldac_off();
-                    ldac_on();
+                   // sendDacQ(dcQ);
+                    //ldac_off();
+                    //ldac_on();
+                    writeDacAB(rawI,rawQ);//lathced in funciton alr
                 }
             }
         }
