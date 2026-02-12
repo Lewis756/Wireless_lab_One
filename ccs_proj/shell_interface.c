@@ -13,6 +13,31 @@
 #include "gpio.h"
 #include "interface_functions.h"
 #include "shell_interface.h"
+
+#define FS 100000 //this number represents sample frequency, how many discrete points of the wave we calculate
+
+uint32_t phase = 0;
+uint32_t delta_phase = 0;
+uint32_t freq_o = 10000; //this is the frequency of the actual wave
+
+void setPhase(uint32_t fout)
+{
+    phase = (uint32_t)((float)fout/FS  * 4294967296); //phase is a function of the desired wave freq/sampling freq * 2^32
+}
+
+//***************************************************//
+//    TODO: WRITE ISR INIT, DOUBLE CHECK NCO LOGIC,
+//    SIN/COS LUT, WRITE ENUM FOR "MODE"
+//***************************************************//
+
+void ISR() //pseudocode for frequency/NCO
+{
+    delta_phase += phase;
+    theta = (delta_phase >> 22); //use first 10 bits
+    sin_val_i = LUT_sin[theta]; //LUT for sin
+    //send the above value to the DAC
+}
+
 //latest pairs
 //uint16_t rawI = 2125; //0v
 //uint16_t rawQ = 2125; //0v
