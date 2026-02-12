@@ -13,6 +13,16 @@
 #include "gpio.h"
 #include "interface_functions.h"
 #include "shell_interface.h"
+//latest pairs
+//uint16_t rawI = 2125; //0v
+//uint16_t rawQ = 2125; //0v
+//float dcI = 0.0f;
+//float dcQ = 0.0f;
+extern uint16_t rawI;
+extern uint16_t rawQ;
+extern float dcI;
+extern float dcQ;
+
 //github test
 // 2125 = 0V
 // 165 = +0.5V
@@ -28,6 +38,20 @@ void ldac_off()
 {
     setPinValue(PORTF, 1, 0);
 }
+//0.5 to dac?
+
+uint16_t voltageToDacCode(float v)
+{
+    // linear eqaution
+    float dacCode = 2125.0f -3940.0f * v;
+    //clamp
+    if(dacCode < 165.0f) dacCode = 165.0f;
+    if(dacCode > 4095.0f) dacCode = 4095.0f;
+    //clippings example .DC I 300 is v .300 and
+    //2125 -3940*.300 gives 94s  so output is .3v DC\return value below
+    return (uint16_t)roundf(dacCode);
+}
+
 //o
 // mcp dac accepts 12 bit (0-4095)
 //uart shell top read mV ??300 mv = .300volts
@@ -44,25 +68,29 @@ float mvToV(int16_t millivolts)
 
 void sendDacI(float v)
 {
-    uint16_t data = 0;
-    uint16_t voltage = 0;
+   // uint16_t data = 0;
+    //uint16_t voltage = 0;
     //insert equation here
-    voltage = 2125 + -3940 * v; //(raw + slope * v)
+    //voltage = 2125 + -3940 * v; //(raw + slope * v)
 
-    data |= voltage | 0x3000; //0011 A
+    uint16_t dacCode = voltageToDacCode(v);
+   // data |= voltage | 0x3000; //0011 A
+    uint16_t data = (dacCode & 0x0FFF) | 0x3000;
     writeSpi1Data(data);
 }
 
 void sendDacQ(float v)
 {
-    uint16_t data = 0;
-    uint16_t voltage = 0;
+   // uint16_t data = 0;
+    //uint16_t voltage = 0;
     //insert equation here
     //voltage = rawQ; //(raw + slope * v)
     //we can fix now and use voltage ?? not raw
-    voltage = 2125 + -3940 * v; // no more raw?!
+    //voltage = 2125 + -3940 * v; // no more raw?!
 
-    data |= voltage | 0xB000; //1011 B
+    uint16_t dacCode = voltageToDacCode(v);
+   // data |= voltage | 0xB000; //1011 B
+    uint16_t data = (dacCode & 0x0FFF) | 0xB000;
     writeSpi1Data(data);
 }
 
@@ -131,7 +159,7 @@ void shell(void)
                 }
             }
         }
-
+        //dc to take in miliivoolts
         if (isCommand(&data, "DC", 2))
         {
             valid = true;
@@ -144,7 +172,9 @@ void shell(void)
                 channel -= 32;
 
             if ((channel != 'I' && channel != 'Q')
-                    || (value < 0 || value > 4095))
+                    //millivolts
+                    || (value <-500 || value > 500))
+                    //(value < 0 || value > 4095))
             {
                 valid = false;
             }
@@ -154,19 +184,23 @@ void shell(void)
                 if (channel == 'I')
                 {
                     dcI = temp;
+                    rawI = voltageToDacCode(dcI);
                     putsUart0("\r\n DC I set \r\n");
-                    sendDacI(dcI);
-                    ldac_off();
-                    ldac_on();
+
+                    //sendDacI(dcI);
+                 //   ldac_off();
+                   // ldac_on();
                 }
                 else //Q channel
                 {
                     dcQ = temp;
+                    rawQ = voltageToDacCode(dcQ);
                     putsUart0("\r\n DC Q set \r\n");
-                    sendDacQ(dcQ);
-                    ldac_off();
-                    ldac_on();
+                   // sendDacQ(dcQ);
+                  //  ldac_off();
+                   // ldac_on();
                 }
+                writeDacAB(rawI,rawQ);
             }
         }
 
