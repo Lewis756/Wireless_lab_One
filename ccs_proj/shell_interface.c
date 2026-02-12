@@ -1,6 +1,8 @@
 // first file to work on !
 // begin with shell an Uart
 // shell to work on
+//part sseven timer for wave  we need cases
+//genral purpose timer0a
 #include "tm4c123gh6pm.h"
 #include "uart0.h"
 #include <stdbool.h>
@@ -23,6 +25,39 @@ extern uint16_t rawQ;
 extern float dcI;
 extern float dcQ;
 
+#define PI 3.14
+#define SAMPLE_SINE_WAVE 4095 // samples for cycle
+uint32_t frequency = 10000;
+
+uint16_t voltageToDacCode(float v)
+{
+    // linear eqaution
+    float dacCode = 2125.0f -3940.0f * v;
+    //clamp
+    if(dacCode < 165.0f) dacCode = 165.0f;
+    if(dacCode > 4095.0f) dacCode = 4095.0f;
+    //clippings example .DC I 300 is v .300 and
+    //2125 -3940*.300 gives 94s  so output is .3v DC\return value below
+    return (uint16_t)roundf(dacCode);
+}
+//10khz full sine cycle below
+ // think of it as fancy array list of DAC codes
+void sine_values() //table
+{ //amplitude .5 to .5
+    float amplitude = 0.5f;
+    uint16_t i =0;
+    for (i = 0; i < SAMPLE_SINE_WAVE; i++ )
+    { // i = 0 to i =4095
+        //sine periodic complete wave at 2Pi and divide evenly into 4095
+        //i chooses what angle a small slice
+     float angle = (2 * PI * i)/ SAMPLE_SINE_WAVE;
+     //A*SIN(angle) shrinkwwave .5 to -.5
+     float wave_voltage = amplitude * sin(angle);
+     //send voltage to go iunto made a dac value
+     sineDacTable[i] = voltageToDacCode(wave_voltage);
+    }
+}
+
 //github test
 // 2125 = 0V
 // 165 = +0.5V
@@ -39,19 +74,6 @@ void ldac_off()
     setPinValue(PORTF, 1, 0);
 }
 //0.5 to dac?
-
-uint16_t voltageToDacCode(float v)
-{
-    // linear eqaution
-    float dacCode = 2125.0f -3940.0f * v;
-    //clamp
-    if(dacCode < 165.0f) dacCode = 165.0f;
-    if(dacCode > 4095.0f) dacCode = 4095.0f;
-    //clippings example .DC I 300 is v .300 and
-    //2125 -3940*.300 gives 94s  so output is .3v DC\return value below
-    return (uint16_t)roundf(dacCode);
-}
-
 //o
 // mcp dac accepts 12 bit (0-4095)
 //uart shell top read mV ??300 mv = .300volts
