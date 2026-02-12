@@ -50,9 +50,10 @@ extern uint16_t rawQ;
 extern float dcI;
 extern float dcQ;
 
-#define PI 3.14
+#define PI 3.14159265359f
 #define SAMPLE_SINE_WAVE 4095 // samples for cycle
 uint32_t frequency = 10000;
+uint16_t sineDacTable[SAMPLE_SINE_WAVE]
 
 uint16_t voltageToDacCode(float v)
 {
