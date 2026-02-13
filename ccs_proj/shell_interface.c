@@ -15,6 +15,19 @@
 #include "gpio.h"
 #include "interface_functions.h"
 #include "shell_interface.h"
+//streaming bits/ byes
+// number f symnbols = total bits/ bits per Symbols different cases
+//streaming
+#define NUM_BYTES 90 //90bytes x 8Bits = 720/1bitpersymbol=bpsk
+//qpsk 720/2 = 360 symbols
+//8psk 720/3 240 symbols
+//16Qam 720/4 = 180 symbols
+uint8_t dataBytes[NUM_BYTES];
+// fror step 13 data values in memory
+#define PI 3.14159265359f
+#define SAMPLE_SINE_WAVE 4095 // samples for cycle
+uint32_t frequency = 10000;
+uint16_t sineDacTable[SAMPLE_SINE_WAVE];
 
 #define FS 100000 //this number represents sample frequency, how many discrete points of the wave we calculate
 
@@ -47,10 +60,10 @@ void ISR() //pseudocode for frequency/NCO
     //90 = (1/4)*(2^32)/4 = 2^32/2^2 = 2^30 =1073741824
     phaseCosine = ((delta_phase + 1073741824 ) >> 20); //adds the offset and keeps 12 bits msb only
     phaseSine = ((delta_phase >> 20));
-    rawI = sine_values[phaseCosine];
-    rawQ = sine_values[phaseSine];
+    rawI = sineDacTable[phaseCosine];
+    rawQ = sineDacTable[phaseSine];
 
-    writeDacAB(rawI,2000);
+    writeDacAB(rawI, rawQ);
     //m,sb impoartant 1^12
     //2^12 4096 entries
    // theta = (delta_phase >> 22); //use first 10 bits
@@ -71,10 +84,6 @@ extern uint16_t rawQ;
 extern float dcI;
 extern float dcQ;
 
-#define PI 3.14159265359f
-#define SAMPLE_SINE_WAVE 4095 // samples for cycle
-uint32_t frequency = 10000;
-uint16_t sineDacTable[SAMPLE_SINE_WAVE]
 
 uint16_t voltageToDacCode(float v)
 {
@@ -134,7 +143,15 @@ float mvToV(int16_t millivolts)
     //return volts after calculation
     return volts;
 }
+//random table to fill allray that holds data bytes
+void fillDataBytes(void)// 8 bit data bytes for transmission
+{
+   for(uint8_t i = 0; i < NUM_BYTES; i++)// 8 bits is a byte
+   {
+       dataBytes[i] =(uint8_t) rand() ; //keeps in range because type cast
+   }
 
+}
 void sendDacI(float v)
 {
    // uint16_t data = 0;
@@ -183,6 +200,8 @@ void writeDacAB(uint16_t rawI, uint16_t rawQ)
 void shell(void)
 {
     USER_DATA data;
+    sine_values();
+    fillDataBytes();
 
     while (true)
     {
