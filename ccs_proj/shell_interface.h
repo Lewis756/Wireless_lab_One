@@ -20,5 +20,8 @@ float dcQ;
 void shell(void);
 void sendDacI(float v);
 void sendDacQ(float v);
+void writeDacAB(uint16_t rawI, uint16_t rawQ);
+void ISR();
+
 
 #endif

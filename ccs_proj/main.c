@@ -6,6 +6,8 @@
 #include "wait.h"
 #include "shell_interface.h"
 #include "spi1.h"
+#include "systick.h"
+
 //initialize hardware
 void intHW()
 {
