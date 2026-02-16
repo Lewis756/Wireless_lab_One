@@ -8,7 +8,7 @@
 #ifndef SYSTICK_H_
 #define SYSTICK_H_
 
-void init_SysTick()
+void init_SysTick();
 
 
 #endif /* SYSTICK_H_ */

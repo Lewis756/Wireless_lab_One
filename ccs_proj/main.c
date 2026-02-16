@@ -19,6 +19,7 @@ void intHW()
     enablePort(PORTF);
     selectPinPushPullOutput(PORTF, 1);
     setPinValue(PORTF, 1, 1); //set ldac on
+    init_SysTick();
 }
 
 int main()

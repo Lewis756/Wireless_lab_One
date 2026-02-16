@@ -33,11 +33,11 @@ uint16_t sineDacTable[SAMPLE_SINE_WAVE];
 
 uint32_t phase = 0;
 uint32_t delta_phase = 0;
-uint32_t freq_o = 10000; //this is the frequency of the actual wave
+uint32_t freq_o = 5000; //this is the frequency of the actual wave
 
 void setPhase(uint32_t fout)
 {
-    phase = (uint32_t)((float)fout/FS  * 4294967296); //phase is a function of the desired wave freq/sampling freq * 2^32
+    phase = (uint32_t) (((float) fout / FS) * 4294967295); //phase is a function of the desired wave freq/sampling freq * 2^32
 }
 void ldac_on()
 {
@@ -69,16 +69,16 @@ void writeDacAB(uint16_t rawI, uint16_t rawQ)
 
 void ISR() //pseudocode for frequency/NCO
 { //delatphase fixed point angleli
-   delta_phase += phase; //2^32delathase/2^20 to get 12 bits
-   //Phase how much angle moves each smaple
-   //deltaphase current angle
-    phaseSine = (delta_phase >> 20);// 12 bits 2^12 4096 matches sample
+    delta_phase += phase; //2^32delathase/2^20 to get 12 bits
+    //Phase how much angle moves each smaple
+    //deltaphase current angle
+  //  phaseSine = (delta_phase >> 20);   // 12 bits 2^12 4096 matches sample
     //phase space 0-2^32-1
     //0-360degree represented
     //360 degree = 2^32
     //cosine 90 degree offset 90= 1/4 of the way through unit circle
     //90 = (1/4)*(2^32)/4 = 2^32/2^2 = 2^30 =1073741824
-    phaseCosine = ((delta_phase + 1073741824 ) >> 20); //adds the offset and keeps 12 bits msb only
+    phaseCosine = ((delta_phase + 1073741824) >> 20); //adds the offset and keeps 12 bits msb only
     phaseSine = ((delta_phase >> 20));
     rawI = sineDacTable[phaseCosine];
     rawQ = sineDacTable[phaseSine];
@@ -86,11 +86,11 @@ void ISR() //pseudocode for frequency/NCO
     writeDacAB(rawI, rawQ);
     //m,sb impoartant 1^12
     //2^12 4096 entries
-   // theta = (delta_phase >> 22); //use first 10 bits
+    // theta = (delta_phase >> 22); //use first 10 bits
     // now channel A rawI cosine
     //channel B rawQ sine
 
-  //  sin_val_i = LUT_sin[theta]; //LUT for sin
+    //  sin_val_i = LUT_sin[theta]; //LUT for sin
     //send the above value to the DAC
 }
 
@@ -104,33 +104,34 @@ extern uint16_t rawQ;
 extern float dcI;
 extern float dcQ;
 
-
 uint16_t voltageToDacCode(float v)
 {
     // linear eqaution
-    float dacCode = 2125.0f -3940.0f * v;
+    float dacCode = 2125.0f - 3940.0f * v;
     //clamp
-    if(dacCode < 165.0f) dacCode = 165.0f;
-    if(dacCode > 4095.0f) dacCode = 4095.0f;
+    if (dacCode < 165.0f)
+        dacCode = 165.0f;
+    if (dacCode > 4095.0f)
+        dacCode = 4095.0f;
     //clippings example .DC I 300 is v .300 and
     //2125 -3940*.300 gives 94s  so output is .3v DC\return value below
-    return (uint16_t)roundf(dacCode);
+    return (uint16_t) roundf(dacCode);
 }
 //10khz full sine cycle below
- // think of it as fancy array list of DAC codes
+// think of it as fancy array list of DAC codes
 void sine_values() //table
 { //amplitude .5 to .5
     float amplitude = 0.5f;
-    uint16_t i =0;
-    for (i = 0; i < SAMPLE_SINE_WAVE; i++ )
+    uint16_t i = 0;
+    for (i = 0; i < SAMPLE_SINE_WAVE; i++)
     { // i = 0 to i =4095
-        //sine periodic complete wave at 2Pi and divide evenly into 4095
-        //i chooses what angle a small slice
-     float angle = (2 * PI * i)/ SAMPLE_SINE_WAVE;
-     //A*SIN(angle) shrinkwwave .5 to -.5
-     float wave_voltage = amplitude * sin(angle);
-     //send voltage to go iunto made a dac value
-     sineDacTable[i] = voltageToDacCode(wave_voltage);
+      //sine periodic complete wave at 2Pi and divide evenly into 4095
+      //i chooses what angle a small slice
+        float angle = (2 * PI * i) / SAMPLE_SINE_WAVE;
+        //A*SIN(angle) shrinkwwave .5 to -.5
+        float wave_voltage = amplitude * sin(angle);
+        //send voltage to go iunto made a dac value
+        sineDacTable[i] = voltageToDacCode(wave_voltage);
     }
 }
 
@@ -155,31 +156,31 @@ float mvToV(int16_t millivolts)
     return volts;
 }
 //random table to fill allray that holds data bytes
-void fillDataBytes(void)// 8 bit data bytes for transmission
+void fillDataBytes(void)        // 8 bit data bytes for transmission
 {
-    uint16_t  i;
-   for( i = 0; i < NUM_BYTES; i++)// 8 bits is a byte
-   {
-       dataBytes[i] =(uint8_t) rand() ; //keeps in range because type cast
-   }
+    uint16_t i;
+    for (i = 0; i < NUM_BYTES; i++)        // 8 bits is a byte
+    {
+        dataBytes[i] = (uint8_t) rand(); //keeps in range because type cast
+    }
 
 }
 void sendDacI(float v)
 {
-   // uint16_t data = 0;
+    // uint16_t data = 0;
     //uint16_t voltage = 0;
     //insert equation here
     //voltage = 2125 + -3940 * v; //(raw + slope * v)
 
     uint16_t dacCode = voltageToDacCode(v);
-   // data |= voltage | 0x3000; //0011 A
+    // data |= voltage | 0x3000; //0011 A
     uint16_t data = (dacCode & 0x0FFF) | 0x3000;
     writeSpi1Data(data);
 }
 
 void sendDacQ(float v)
 {
-   // uint16_t data = 0;
+    // uint16_t data = 0;
     //uint16_t voltage = 0;
     //insert equation here
     //voltage = rawQ; //(raw + slope * v)
@@ -187,7 +188,7 @@ void sendDacQ(float v)
     //voltage = 2125 + -3940 * v; // no more raw?!
 
     uint16_t dacCode = voltageToDacCode(v);
-   // data |= voltage | 0xB000; //1011 B
+    // data |= voltage | 0xB000; //1011 B
     uint16_t data = (dacCode & 0x0FFF) | 0xB000;
     writeSpi1Data(data);
 }
@@ -197,19 +198,19 @@ void sendDacQ(float v)
 //when type a voltage compute the dac code
 // write to BOTH at the same time ! Raw?
 /*
-void writeDacAB(uint16_t rawI, uint16_t rawQ)
-{
-    //preserve 16 bit and and cleaer to write to correct channel
-    uint16_t spitransferA = ((rawI & 0x0FFF) | 0x3000); //configured to A
-    uint16_t spitransferB = ((rawQ & 0x0fff) | 0xB000); //configured to B
-    // send to both now
-    writeSpi1Data(spitransferA);
-    writeSpi1Data(spitransferB);
-    //latch them
-    ldac_off();
-    ldac_on();
-}
-*/
+ void writeDacAB(uint16_t rawI, uint16_t rawQ)
+ {
+ //preserve 16 bit and and cleaer to write to correct channel
+ uint16_t spitransferA = ((rawI & 0x0FFF) | 0x3000); //configured to A
+ uint16_t spitransferB = ((rawQ & 0x0fff) | 0xB000); //configured to B
+ // send to both now
+ writeSpi1Data(spitransferA);
+ writeSpi1Data(spitransferB);
+ //latch them
+ ldac_off();
+ ldac_on();
+ }
+ */
 void shell(void)
 {
     USER_DATA data;
@@ -247,16 +248,16 @@ void shell(void)
                     //sendDacI(dcI); to debug
                     //ldac_off();
                     //ldac_on();
-                    writeDacAB(rawI,rawQ); //lathced lar in funciton
+                    writeDacAB(rawI, rawQ); //lathced lar in funciton
                 }
                 else //Q channel
                 {
                     rawQ = value;
                     putsUart0("\r\n RAW Q set \r\n");
-                   // sendDacQ(dcQ);
+                    // sendDacQ(dcQ);
                     //ldac_off();
                     //ldac_on();
-                    writeDacAB(rawI,rawQ);//lathced in funciton alr
+                    writeDacAB(rawI, rawQ);            //lathced in funciton alr
                 }
             }
         }
@@ -273,9 +274,9 @@ void shell(void)
                 channel -= 32;
 
             if ((channel != 'I' && channel != 'Q')
-                    //millivolts
-                    || (value <-500 || value > 500))
-                    //(value < 0 || value > 4095))
+            //millivolts
+                    || (value < -500 || value > 500))
+            //(value < 0 || value > 4095))
             {
                 valid = false;
             }
@@ -284,31 +285,43 @@ void shell(void)
                 temp = mvToV(value);
                 if (channel == 'I')
                 {
+
                     dcI = temp;
                     rawI = voltageToDacCode(dcI);
                     putsUart0("\r\n DC I set \r\n");
 
                     //sendDacI(dcI);
-                 //   ldac_off();
-                   // ldac_on();
+                    //   ldac_off();
+                    // ldac_on();
                 }
                 else //Q channel
                 {
                     dcQ = temp;
                     rawQ = voltageToDacCode(dcQ);
                     putsUart0("\r\n DC Q set \r\n");
-                   // sendDacQ(dcQ);
-                  //  ldac_off();
-                   // ldac_on();
+                    // sendDacQ(dcQ);
+                    //  ldac_off();
+                    // ldac_on();
                 }
-                writeDacAB(rawI,rawQ);
+                writeDacAB(rawI, rawQ);
             }
+        }
+
+        if (isCommand(&data, "PHASE", 2))
+        {
+            valid = true;
+
+            int32_t value = getFieldInteger(&data, 1);
+
+            setPhase(value);
+            putsUart0("\r\n PHASE SET \r\n");
+
         }
 
         if (!valid)
         {
             putsUart0(": Invalid command \r\n");
         }
-      //  putsUart0("\r\nOk\r\n");
+        //  putsUart0("\r\nOk\r\n");
     }
 }

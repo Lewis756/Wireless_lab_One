@@ -23,6 +23,7 @@ main.obj: ../wait.h
 main.obj: ../gpio.h
 main.obj: ../shell_interface.h
 main.obj: ../spi1.h
+main.obj: ../systick.h
 
 ../main.c:
 
@@ -69,4 +70,6 @@ C:/ti/ccs1281/ccs/tools/compiler/ti-cgt-arm_20.2.7.LTS/include/stdlib.h:
 ../shell_interface.h:
 
 ../spi1.h:
+
+../systick.h:
 

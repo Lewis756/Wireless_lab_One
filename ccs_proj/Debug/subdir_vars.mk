@@ -15,6 +15,7 @@ C_SRCS += \
 ../main.c \
 ../shell_interface.c \
 ../spi1.c \
+../systick.c \
 ../tm4c123gh6pm_startup_ccs.c \
 ../uart0.c 
 
@@ -25,6 +26,7 @@ C_DEPS += \
 ./main.d \
 ./shell_interface.d \
 ./spi1.d \
+./systick.d \
 ./tm4c123gh6pm_startup_ccs.d \
 ./uart0.d 
 
@@ -35,6 +37,7 @@ OBJS += \
 ./main.obj \
 ./shell_interface.obj \
 ./spi1.obj \
+./systick.obj \
 ./tm4c123gh6pm_startup_ccs.obj \
 ./uart0.obj 
 
@@ -45,6 +48,7 @@ OBJS__QUOTED += \
 "main.obj" \
 "shell_interface.obj" \
 "spi1.obj" \
+"systick.obj" \
 "tm4c123gh6pm_startup_ccs.obj" \
 "uart0.obj" 
 
@@ -55,6 +59,7 @@ C_DEPS__QUOTED += \
 "main.d" \
 "shell_interface.d" \
 "spi1.d" \
+"systick.d" \
 "tm4c123gh6pm_startup_ccs.d" \
 "uart0.d" 
 
@@ -65,6 +70,7 @@ C_SRCS__QUOTED += \
 "../main.c" \
 "../shell_interface.c" \
 "../spi1.c" \
+"../systick.c" \
 "../tm4c123gh6pm_startup_ccs.c" \
 "../uart0.c" 
 
