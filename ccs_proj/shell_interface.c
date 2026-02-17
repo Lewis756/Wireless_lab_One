@@ -22,8 +22,16 @@
 //qpsk 720/2 = 360 symbols
 //8psk 720/3 240 symbols
 //16Qam 720/4 = 180 symbols
-uint8_t dataBytes[NUM_BYTES];
+//uint8_t dataBytes[NUM_BYTES];
 // fror step 13 data values in memory
+uint8_t StoredBpsk[8]; //BPSK array
+uint16_t bpskSymbol = 0;
+uint8_t mode = 0;
+
+#define DAC_ZERO_OFFSET 2125 //2125 dac value for  zero volts
+#define I_GAIN 1960
+
+
 #define PI 3.14159265359f
 #define SAMPLE_SINE_WAVE 4095 // samples for cycle
 uint32_t frequency = 10000;
@@ -69,31 +77,54 @@ void writeDacAB(uint16_t rawI, uint16_t rawQ)
 
 void ISR() //pseudocode for frequency/NCO
 { //delatphase fixed point angleli
-    delta_phase += phase; //2^32delathase/2^20 to get 12 bits
-    //Phase how much angle moves each smaple
-    //deltaphase current angle
-  //  phaseSine = (delta_phase >> 20);   // 12 bits 2^12 4096 matches sample
-    //phase space 0-2^32-1
-    //0-360degree represented
-    //360 degree = 2^32
-    //cosine 90 degree offset 90= 1/4 of the way through unit circle
-    //90 = (1/4)*(2^32)/4 = 2^32/2^2 = 2^30 =1073741824
-    phaseCosine = ((delta_phase + 1073741824) >> 20); //adds the offset and keeps 12 bits msb only
-    phaseSine = ((delta_phase >> 20));
-    rawI = sineDacTable[phaseCosine];
-    rawQ = sineDacTable[phaseSine];
+    switch(mode)
+    {
+        case 0: //sincos
 
-    writeDacAB(rawI, rawQ);
-    //m,sb impoartant 1^12
-    //2^12 4096 entries
-    // theta = (delta_phase >> 22); //use first 10 bits
-    // now channel A rawI cosine
-    //channel B rawQ sine
+            delta_phase += phase; //2^32delathase/2^20 to get 12 bits
+            //Phase how much angle moves each smaple
+            //deltaphase current angle
+          //  phaseSine = (delta_phase >> 20);   // 12 bits 2^12 4096 matches sample
+            //phase space 0-2^32-1
+            //0-360degree represented
+            //360 degree = 2^32
+            //cosine 90 degree offset 90= 1/4 of the way through unit circle
+            //90 = (1/4)*(2^32)/4 = 2^32/2^2 = 2^30 =1073741824
+            phaseCosine = ((delta_phase + 1073741824) >> 20); //adds the offset and keeps 12 bits msb only
+            phaseSine = ((delta_phase >> 20));
+            rawI = sineDacTable[phaseCosine];
+            rawQ = sineDacTable[phaseSine];
 
+            writeDacAB(rawI, rawQ);
+            //m,sb impoartant 1^12
+            //2^12 4096 entries
+            // theta = (delta_phase >> 22); //use first 10 bits
+            // now channel A rawI cosine
+            //channel B rawQ sine
+            break;
+        case 1: //bpsk
+        if(StoredBpsk[bpskSymbol] == 0)
+        {
+            rawI = DAC_ZERO_OFFSET - I_GAIN;
+            rawQ = DAC_ZERO_OFFSET;
+            writeDacAB(rawI,rawQ);
+        }
+        else
+        {
+            rawI = DAC_ZERO_OFFSET + I_GAIN;
+            rawQ = DAC_ZERO_OFFSET;
+            writeDacAB(rawI,rawQ);
+        }
+            bpskSymbol++;
+            bpskSymbol = bpskSymbol % 8;
+            break;
+
+        default:
+              break;
     //  sin_val_i = LUT_sin[theta]; //LUT for sin
     //send the above value to the DAC
+ }
 }
-
 //latest pairs
 //uint16_t rawI = 2125; //0v
 //uint16_t rawQ = 2125; //0v
@@ -156,15 +187,14 @@ float mvToV(int16_t millivolts)
     return volts;
 }
 //random table to fill allray that holds data bytes
-void fillDataBytes(void)        // 8 bit data bytes for transmission
+/*void fillDataBytes(void)        // 8 bit data bytes for transmission
 {
     uint16_t i;
     for (i = 0; i < NUM_BYTES; i++)        // 8 bits is a byte
     {
         dataBytes[i] = (uint8_t) rand(); //keeps in range because type cast
     }
-
-}
+}*/
 void sendDacI(float v)
 {
     // uint16_t data = 0;
@@ -192,7 +222,19 @@ void sendDacQ(float v)
     uint16_t data = (dacCode & 0x0FFF) | 0xB000;
     writeSpi1Data(data);
 }
-
+void bitSymbol(uint8_t size)
+{ //bpsk gets one bit
+    uint8_t infoByte, BitIndex;
+    if (size == 1)
+    {   //85 is 01010101
+        infoByte = 85;//hard coded nice change of vaues
+        for(BitIndex =0; BitIndex < 8; BitIndex++)
+        {
+            StoredBpsk[BitIndex] = (infoByte >> BitIndex) & 1;
+            //shift to read lsb to msb
+        }
+    }
+}
 // now volts to dac code
 // when dac gets code the op amp, the outputvoltage is measured
 //when type a voltage compute the dac code
@@ -215,7 +257,8 @@ void shell(void)
 {
     USER_DATA data;
     sine_values();
-    fillDataBytes();
+    //fillDataBytes();
+    bitSymbol(1);
 
     while (true)
     {
@@ -317,7 +360,22 @@ void shell(void)
             putsUart0("\r\n PHASE SET \r\n");
 
         }
+        if (isCommand(&data, "SINCOS", 0))
+        {
+            valid = true;
+            mode = 0;
+            delta_phase = 0;
+            putsUart0("\r\n DISPLAYING SIN COS \r\n");
 
+        }
+        if (isCommand(&data, "BPSK", 0))
+        {
+            valid = true;
+            mode = 1;
+            bpskSymbol = 0;
+            putsUart0("\r\n DISPLAYING BPSK \r\n");
+
+        }
         if (!valid)
         {
             putsUart0(": Invalid command \r\n");
