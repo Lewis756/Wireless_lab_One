@@ -1,4 +1,5 @@
 "./clock.obj"
+"./clock80.obj"
 "./gpio.obj"
 "./interface_functions.obj"
 "./main.obj"
@@ -7,5 +8,6 @@
 "./systick.obj"
 "./tm4c123gh6pm_startup_ccs.obj"
 "./uart0.obj"
+"./wireless.obj"
 "../tm4c123gh6pm.cmd"
 -llibc.a

@@ -11,6 +11,7 @@ GEN_CMDS__FLAG :=
 
 ORDERED_OBJS += \
 "./clock.obj" \
+"./clock80.obj" \
 "./gpio.obj" \
 "./interface_functions.obj" \
 "./main.obj" \
@@ -19,6 +20,7 @@ ORDERED_OBJS += \
 "./systick.obj" \
 "./tm4c123gh6pm_startup_ccs.obj" \
 "./uart0.obj" \
+"./wireless.obj" \
 "../tm4c123gh6pm.cmd" \
 $(GEN_CMDS__FLAG) \
 -llibc.a \
@@ -149,8 +151,8 @@ wireless.out: $(OBJS) $(CMD_SRCS) $(GEN_CMDS)
 # Other Targets
 clean:
 	-$(RM) $(EXE_OUTPUTS__QUOTED)
-	-$(RM) "clock.obj" "gpio.obj" "interface_functions.obj" "main.obj" "shell_interface.obj" "spi1.obj" "systick.obj" "tm4c123gh6pm_startup_ccs.obj" "uart0.obj" 
-	-$(RM) "clock.d" "gpio.d" "interface_functions.d" "main.d" "shell_interface.d" "spi1.d" "systick.d" "tm4c123gh6pm_startup_ccs.d" "uart0.d" 
+	-$(RM) "clock.obj" "clock80.obj" "gpio.obj" "interface_functions.obj" "main.obj" "shell_interface.obj" "spi1.obj" "systick.obj" "tm4c123gh6pm_startup_ccs.obj" "uart0.obj" "wireless.obj" 
+	-$(RM) "clock.d" "clock80.d" "gpio.d" "interface_functions.d" "main.d" "shell_interface.d" "spi1.d" "systick.d" "tm4c123gh6pm_startup_ccs.d" "uart0.d" "wireless.d" 
 	-@echo 'Finished clean'
 	-@echo ' '
 

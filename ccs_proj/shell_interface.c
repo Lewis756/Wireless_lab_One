@@ -135,6 +135,55 @@ void shell(void)
             putsUart0("\r\n DISPLAYING BPSK \r\n");
 
         }
+        if (isCommand(&data, "SEND", 2 ))
+        {
+            valid = true;
+            char* modulation = getFieldString(&data, 1); // qpsk or bpsk etc
+            char* hexStr = getFieldString(&data, 2); //example FFFFFFFF\
+            uint32_t sendWord = 0;
+            if(!HexToU32(hexStr, &sendWord))
+            {
+                putsUart0("\r\n Invaluid hex format up to 8 \r\n");
+                valid = false;
+            }
+            else
+            {
+            if (Stringcmpr(modulation, "bpsk"))
+            {
+              numberTransmitted(1, sendWord);
+              mode = bpsk;
+              bpskSymbol = 0;
+              putsUart0("\r\nBPSK word Loaded \r\n");
+            }
+            else if (Stringcmpr(modulation,"qpsk"))
+            {
+                numberTransmitted(2, sendWord);
+                mode = qpsk;
+                ReadConstellation = 0;
+                putsUart0("\r\nQPSK word Loaded \r\n");
+            }
+            else if(Stringcmpr(modulation,"epsk"))
+            {
+                numberTransmitted(3, sendWord);
+                mode = epsk;
+                ReadConstellation = 0;
+                putsUart0("\r\nEPSK word Loaded \r\n");
+
+            }
+            else if(StringCmpr(modulation,"qam"))
+            {
+                numberTransmitted(4,sendWord);
+                mode = qam;
+                ReadConstellation = 0;
+                putsUart0("\r\n16QAM word Loaded \r\n");
+            }
+            else
+            {
+                putsUart0("\r\nInvalide Modulation \r\n");
+                valid = false;
+            }
+         }
+        }
         if (!valid)
         {
             putsUart0(": Invalid command \r\n");

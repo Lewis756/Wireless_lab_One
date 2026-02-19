@@ -1,4 +1,5 @@
 #include "wireless.h"
+#include "gpio.h"
 
 //streaming bits/ byes
 // number f symnbols = total bits/ bits per Symbols different cases
@@ -15,7 +16,7 @@ uint8_t StoredQpsk[16];//qpsk 2 bits per symbol
 uint8_t StoredEpsk[10];//epsk 3 bits per symbol
 uint8_t StoredQam[8];//qam 4 bits per symbol
 //arrays to store
-uint16_t Symbol = 0; //isr index
+uint16_t SymbolStored = 0; //isr index
 uint16_t SymbolCount = 0;
 uint8_t mode = 0;
 uint16_t ReadConstellation = 0;
@@ -128,6 +129,30 @@ void ISR() //pseudocode for frequency/NCO
         ReadConstellation++;
         break;
     }
+    case (epsk):
+    {
+        ReadConstellation = ReadConstellation%SymbolCount; // valid symbols allwoed
+        itteration = StoredEpsk[ReadConstellation];
+
+        //rawI =
+       // rawQ =
+
+         writeDacAB(rawI, rawQ);
+        ReadConstellaiton++;
+        break;
+    }
+    case (qam):
+    {
+        ReadConstellation = ReadConstellation%SymbolCount; //m wraps around valid symbols
+        itteration = StoredQam[ReadConstellation];
+
+       // rawI =
+     //   rawQ =
+
+        writeDacAB(rawI,rawQ);
+        ReadConstellation++;
+        break;
+    }
     default:
         break;
         //  sin_val_i = LUT_sin[theta]; //LUT for sin
@@ -232,7 +257,7 @@ void sendDacQ(float v)
     uint16_t data = (dacCode & 0x0FFF) | 0xB000;
     writeSpi1Data(data);
 }
-
+//hard coded values below
 void bitSymbol(uint8_t size)
 {
     //bpsk gets one bit
@@ -271,9 +296,10 @@ void bitSymbol(uint8_t size)
         }
     }
 }
+// used for validation of symbols creadted by number hex value passed
 void numberTransmitted(uint8_t size, uint32_t number)
 {
-    uint8_t Symbol;// extracted symbol
+    uint8_t SymbolStored;// extracted symbol
     uint8_t BitIndex;//looping index
 
     if (size == 1)//bpsk
@@ -289,8 +315,8 @@ void numberTransmitted(uint8_t size, uint32_t number)
         SymbolCount = 16;//
         for(BitIndex = 0; BitIndex < 16; BitIndex++)
         {
-            Symbol = (number >> (BitIndex * 2)) & 0x03;
-            StoredQpsk[BitIndex] = Symbol;
+            SymbolStored = (number >> (BitIndex * 2)) & 0x03;
+            StoredQpsk[BitIndex] = SymbolStored;
         }
     }
     else if (size == 3) // 8psk
@@ -298,8 +324,8 @@ void numberTransmitted(uint8_t size, uint32_t number)
         SymbolCount = 10;
         for(BitIndex = 0; BitIndex < 10; BitIndex++)
         {
-            Symbol = (number >> (BitIndex * 3)) & 0x07;
-            StoredEpsk[BitIndex] = Symbol;
+            SymbolStored = (number >> (BitIndex * 3)) & 0x07;
+            StoredEpsk[BitIndex] = SymbolStored;
         }
     }
     else if (size == 4) // qam
@@ -307,8 +333,8 @@ void numberTransmitted(uint8_t size, uint32_t number)
         SymbolCount = 8;
         for(BitIndex = 0; BitIndex < 8; BitIndex++)
         {
-            Symbol = (number >> (BitIndex * 4)) & 0x0F;
-            StoredQam   [BitIndex] = Symbol;
+            SymbolStored = (number >> (BitIndex * 4)) & 0x0F;
+            StoredQam   [BitIndex] = SymbolStored;
         }
     }
 }

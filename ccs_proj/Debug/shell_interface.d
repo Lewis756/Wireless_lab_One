@@ -26,6 +26,7 @@ shell_interface.obj: ../gpio.h
 shell_interface.obj: ../interface_functions.h
 shell_interface.obj: C:/ti/ccs1281/ccs/tools/compiler/ti-cgt-arm_20.2.7.LTS/include/stdlib.h
 shell_interface.obj: ../shell_interface.h
+shell_interface.obj: ../wireless.h
 
 ../shell_interface.c:
 
@@ -78,4 +79,6 @@ C:/ti/ccs1281/ccs/tools/compiler/ti-cgt-arm_20.2.7.LTS/include/machine/_limits.h
 C:/ti/ccs1281/ccs/tools/compiler/ti-cgt-arm_20.2.7.LTS/include/stdlib.h:
 
 ../shell_interface.h:
+
+../wireless.h:
 
