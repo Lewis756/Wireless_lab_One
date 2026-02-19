@@ -1,6 +1,6 @@
 #include "wireless.h"
 #include "gpio.h"
-
+//.354 = 730 ish
 //streaming bits/ byes
 // number f symnbols = total bits/ bits per Symbols different cases
 //streaming
@@ -11,6 +11,7 @@
 //uint8_t dataBytes[NUM_BYTES];
 // fror step 13 data values in memory
 // for a 32 bit integer
+
 uint8_t StoredBpsk[32]; //BPSK array 32 symbols
 uint8_t StoredQpsk[16];//qpsk 2 bits per symbol
 uint8_t StoredEpsk[10];//epsk 3 bits per symbol
@@ -113,7 +114,6 @@ void ISR() //pseudocode for frequency/NCO
             writeDacAB(rawI, rawQ);
         }
         bpskSymbol++;
-       // bpskSymbol = bpskSymbol % 8;
         bpskSymbol = bpskSymbol % SymbolCount;
         break;
     case (qpsk):
