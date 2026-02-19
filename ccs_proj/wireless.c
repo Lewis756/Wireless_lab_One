@@ -65,6 +65,7 @@ void ISR() //pseudocode for frequency/NCO
 { //delatphase fixed point angle
     switch (mode)
     {
+    case (dc): break;
     case (sine): //sincos
 
         delta_phase += phase; //2^32delathase/2^20 to get 12 bits

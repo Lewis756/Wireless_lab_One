@@ -6,6 +6,7 @@
 
 typedef enum
 {
+    dc = 2,
     sine = 0,
     bpsk = 1
 } MODE;
