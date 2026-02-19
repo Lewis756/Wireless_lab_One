@@ -11,17 +11,7 @@
 #ifndef SHELL_INTERFACE_H_
 #define SHELL_INTERFACE_H_
 
-#include <stdbool.h>
-
-uint16_t rawI;
-uint16_t rawQ;
-float dcI;
-float dcQ;
 void shell(void);
-void sendDacI(float v);
-void sendDacQ(float v);
-void writeDacAB(uint16_t rawI, uint16_t rawQ);
-void ISR();
 
 
 #endif
