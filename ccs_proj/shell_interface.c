@@ -122,7 +122,7 @@ void shell(void)
         if (isCommand(&data, "SINCOS", 0))
         {
             valid = true;
-            mode = 0;
+            mode = sine;
             delta_phase = 0;
             putsUart0("\r\n DISPLAYING SIN COS \r\n");
 
@@ -130,7 +130,7 @@ void shell(void)
         if (isCommand(&data, "BPSK", 0))
         {
             valid = true;
-            mode = 1;
+            mode = bpsk;
             bpskSymbol = 0;
             putsUart0("\r\n DISPLAYING BPSK \r\n");
 

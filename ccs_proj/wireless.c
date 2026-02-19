@@ -44,15 +44,13 @@ void ldac_off()
 {
     setPinValue(PORTF, 1, 0);
 }
-//***************************************************//
-// WRITE ENUM FOR "MODE"
-//***************************************************//
 
 uint32_t phaseSine = 0;
 uint32_t phaseCosine = 0;
+
 void writeDacAB(uint16_t rawI, uint16_t rawQ)
 {
-    //preserve 16 bit and and cleaer to write to correct channel
+    //preserve 16 bit and and clear to write to correct channel
     uint16_t spitransferA = ((rawI & 0x0FFF) | 0x3000); //configured to A
     uint16_t spitransferB = ((rawQ & 0x0fff) | 0xB000); //configured to B
     // send to both now
@@ -64,10 +62,10 @@ void writeDacAB(uint16_t rawI, uint16_t rawQ)
 }
 
 void ISR() //pseudocode for frequency/NCO
-{ //delatphase fixed point angleli
+{ //delatphase fixed point angle
     switch (mode)
     {
-    case 0: //sincos
+    case (sine): //sincos
 
         delta_phase += phase; //2^32delathase/2^20 to get 12 bits
         //Phase how much angle moves each smaple
@@ -90,7 +88,7 @@ void ISR() //pseudocode for frequency/NCO
         // now channel A rawI cosine
         //channel B rawQ sine
         break;
-    case 1: //bpsk
+    case (bpsk): //bpsk
         if (StoredBpsk[bpskSymbol] == 0)
         {
             rawI = DAC_ZERO_OFFSET - I_GAIN;
@@ -217,7 +215,7 @@ void bitSymbol(uint8_t size)
     uint8_t infoByte, BitIndex;
     if (size == 1)
     {   //85 is 01010101
-        infoByte = 85;   //hard coded nice change of vaues
+        infoByte = 85;   //hard coded nice change of values
         for (BitIndex = 0; BitIndex < 8; BitIndex++)
         {
             StoredBpsk[BitIndex] = (infoByte >> BitIndex) & 1;
@@ -250,7 +248,6 @@ void bitSymbol(uint8_t size)
     }
 }
 
-}
 // now volts to dac code
 // when dac gets code the op amp, the outputvoltage is measured
 //when type a voltage compute the dac code

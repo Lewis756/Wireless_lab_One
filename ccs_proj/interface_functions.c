@@ -244,15 +244,15 @@ bool isCommand(USER_DATA *data, const char strCommand[], uint8_t minArguments)
 //user interface hex to uint32 value interger
 //true if succiesfull
 //false if invalid or overlfow
-bool HexToU32 (const char *inputString, uint32_t *outputValue)
+bool HexToU32(const char *inputString, uint32_t *outputValue)
 {
     //converts  example A5 to 165 decimal
     //example 1A3 1*16^2 + !0*16^1 + 3*16^0
     //make sure neither pointer is null to not cash
-    if(inputString == NULL || outputValue == NULL)
+    if (inputString == NULL || outputValue == NULL)
         return false;
     //check that string is not empty
-    if(*inputString == '\0')
+    if (*inputString == '\0')
         return false;
     //final 32 bit number
     uint32_t value = 0;
@@ -264,9 +264,9 @@ bool HexToU32 (const char *inputString, uint32_t *outputValue)
         uint32_t Digit;
         // now mak sure is ascii character and conver
         //convert hex to numeric 0-15
-       //char 0 through 9
+        //char 0 through 9
         //ascii calculaitonconvertes to integer
-        if(currentChar >= '0' && currentChar <= '9')
+        if (currentChar >= '0' && currentChar <= '9')
         {
             Digit = currentChar - '0';
         }
@@ -274,7 +274,7 @@ bool HexToU32 (const char *inputString, uint32_t *outputValue)
         // A is decimal 10 for math
         else if (currentChar >= 'A' && currentChar <= 'F')
         {
-            Digit = currentChar - 'A' +10;
+            Digit = currentChar - 'A' + 10;
         }
         //char is lowwwercase
         else if (currentChar >= 'a' && currentChar <= 'f')
@@ -284,20 +284,20 @@ bool HexToU32 (const char *inputString, uint32_t *outputValue)
         //amything else would be invalide
         else
         {
-            return false;// oivalid hex
+            return false;        // oivalid hex
         }
         //check over flow below multiplying
-        if(value > (0xFFFFFFFFUL-Digit)/16)
+        if (value > (0xFFFFFFFFUL - Digit) / 16)
         {
             return false; //would over flow 32 bit
         }
         //multiply hex base then add digit
         //shift left by 4 bits
-        value = value *16 + Digit;
+        value = value * 16 + Digit;
         //pointer advances to next char
         inputString++;
     }
     *outputValue = value;
-            //done
+    //done
     return true;
 }
