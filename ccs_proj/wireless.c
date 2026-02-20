@@ -1,10 +1,12 @@
 #include "wireless.h"
 #include "gpio.h"
 #include "spi1.h"
+
 //.354 = 730 ish
 //streaming bits/ byes
 // number f symnbols = total bits/ bits per Symbols different cases
 //streaming
+
 #define NUM_BYTES 90 //90bytes x 8Bits = 720/1bitpersymbol=bpsk
 //qpsk 720/2 = 360 symbols
 //8psk 720/3 240 n symbols
@@ -13,10 +15,10 @@
 // fror step 13 data values in memory
 // for a 32 bit integer
 
-uint8_t StoredBpsk[32]; //BPSK array 32 symbols
-uint8_t StoredQpsk[16];//qpsk 2 bits per symbol
-uint8_t StoredEpsk[10];//epsk 3 bits per symbol
-uint8_t StoredQam[8];//qam 4 bits per symbol
+uint8_t StoredBpsk[32*2]; //BPSK array 32 symbols
+uint8_t StoredQpsk[16*2];//qpsk 2 bits per symbol
+uint8_t StoredEpsk[10*2];//epsk 3 bits per symbol
+uint8_t StoredQam[8*2];//qam 4 bits per symbol
 //arrays to store
 
 uint16_t SymbolStored = 0; //isr index
@@ -36,6 +38,16 @@ uint16_t sineDacTable[SAMPLE_SINE_WAVE];
 
 int16_t Iqpsk[4] = {I_GAIN,I_GAIN,-I_GAIN,-I_GAIN};
 int16_t Qqpsk[4] = {Q_GAIN,-Q_GAIN,Q_GAIN,-Q_GAIN};
+
+int32_t Iepsk[8] = {I_GAIN * 1.00, I_GAIN * .71,
+                    -I_GAIN * .71, I_GAIN * 0,
+                    I_GAIN * .71, -I_GAIN * 0,
+                    -I_GAIN * 1, -I_GAIN * .71};
+
+int32_t Qepsk[8] = {Q_GAIN * 0, Q_GAIN * .71,
+                   Q_GAIN * .71, Q_GAIN * 1.00,
+                   -Q_GAIN * .71, -Q_GAIN * 1.00,
+                   -Q_GAIN * 0, -Q_GAIN * .71};
 
 #define FS 100000 //this number represents sample frequency, how many discrete points of the wave we calculate
 
@@ -140,21 +152,21 @@ void ISR() //pseudocode for frequency/NCO
     }
     case (epsk):
     {
-        static uint8_t sampleCounter = 0;
-
-        if (sampleCounter == 0)
-        {
+//        static uint8_t sampleCounter = 0;
+//
+//        if (sampleCounter == 0)
+//        {
             ReadConstellation = ReadConstellation % SymbolCount;
-            iteration = StoredQpsk[ReadConstellation];
+            iteration = StoredEpsk[ReadConstellation];
             rawI = DAC_ZERO_OFFSET + Iepsk[iteration];
             rawQ = DAC_ZERO_OFFSET + Qepsk[iteration];
             ReadConstellation++;
-        }
+      //  }
 
         writeDacAB(rawI, rawQ);
 
-        sampleCounter++;
-        sampleCounter %= 2;
+//        sampleCounter++;
+//        sampleCounter %= 2;
 
         break;
     }
@@ -314,23 +326,23 @@ void bitSymbol(uint8_t size)
     }
 }
 // used for validation of symbols creadted by number hex value passed
-void numberTransmitted(uint8_t size, uint32_t number)
+void numberTransmitted(uint8_t size, uint64_t number)
 {
     uint8_t SymbolStored;// extracted symbol
     uint8_t BitIndex;//looping index
 
     if (size == 1)//bpsk
     {
-        SymbolCount = 32; // 32 bits fromm number
-        for (BitIndex = 0; BitIndex < 32; BitIndex++)
+        SymbolCount = 64; // 32 bits fromm number
+        for (BitIndex = 0; BitIndex < 64; BitIndex++)
         {
             StoredBpsk[BitIndex] = (number >> BitIndex) & 0x1;//0001
         }
     }
     else if (size == 2)//qpsk
     {
-        SymbolCount = 16;//
-        for(BitIndex = 0; BitIndex < 16; BitIndex++)
+        SymbolCount = 32;//
+        for(BitIndex = 0; BitIndex < 32; BitIndex++)
         {
             SymbolStored = (number >> (BitIndex * 2)) & 0x03; //0011
             StoredQpsk[BitIndex] = SymbolStored;
@@ -338,8 +350,8 @@ void numberTransmitted(uint8_t size, uint32_t number)
     }
     else if (size == 3) // 8psk
     {
-        SymbolCount = 10;
-        for(BitIndex = 0; BitIndex < 10; BitIndex++)
+        SymbolCount = 21;
+        for(BitIndex = 0; BitIndex < 21; BitIndex++)
         {
             SymbolStored = (number >> (BitIndex * 3)) & 0x07; //0111
             StoredEpsk[BitIndex] = SymbolStored;

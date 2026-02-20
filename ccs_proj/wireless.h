@@ -28,7 +28,7 @@ void writeDacAB(uint16_t rawI, uint16_t rawQ);
 void ISR();
 void bitSymbol(uint8_t size);
 float mvToV(int16_t millivolts);
-void numberTransmitted(uint8_t size, uint32_t number);
+void numberTransmitted(uint8_t size, uint64_t number);
 void setPhase(uint32_t fout);
 void sine_values();
 uint16_t voltageToDacCode(float v);

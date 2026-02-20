@@ -146,6 +146,13 @@ void shell(void)
             numberTransmitted(2, 0x1E1E1B1B);
             putsUart0("\r\n DISPLAYING QPSK \r\n");
         }
+        if (isCommand(&data, "EPSK", 0))
+        {
+            valid = true;
+            mode = epsk;
+            numberTransmitted(3, 0x2345678910111213);
+            putsUart0("\r\n DISPLAYING EPSK \r\n");
+        }
         uint32_t sendWord = 0;
         if (isCommand(&data, "SEND", 2))
         {
