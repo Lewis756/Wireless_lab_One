@@ -18,6 +18,7 @@ uint8_t StoredQpsk[16];//qpsk 2 bits per symbol
 uint8_t StoredEpsk[10];//epsk 3 bits per symbol
 uint8_t StoredQam[8];//qam 4 bits per symbol
 //arrays to store
+
 uint16_t SymbolStored = 0; //isr index
 uint16_t SymbolCount = 0;
 uint8_t mode = 0;
@@ -119,28 +120,42 @@ void ISR() //pseudocode for frequency/NCO
         break;
     case (qpsk):
     {
-        //always trnasmiting that hex value
-        ReadConstellation = ReadConstellation % SymbolCount;
-        iteration = StoredQpsk[ReadConstellation];
+        static uint8_t sampleCounter = 0;
 
-        rawI = DAC_ZERO_OFFSET + Iqpsk[iteration];
-        rawQ = DAC_ZERO_OFFSET + Qqpsk[iteration];
+        if (sampleCounter == 0)
+        {
+            ReadConstellation = ReadConstellation % SymbolCount;
+            iteration = StoredQpsk[ReadConstellation];
+            rawI = DAC_ZERO_OFFSET + Iqpsk[iteration];
+            rawQ = DAC_ZERO_OFFSET + Qqpsk[iteration];
+            ReadConstellation++;
+        }
 
-        writeDacAB(rawI,rawQ);
+        writeDacAB(rawI, rawQ);
 
-        ReadConstellation++;
+        sampleCounter++;
+        sampleCounter %= 2;
+
         break;
     }
     case (epsk):
     {
-        ReadConstellation = ReadConstellation%SymbolCount; // valid symbols allwoed
-        iteration = StoredEpsk[ReadConstellation];
+        static uint8_t sampleCounter = 0;
 
-        //rawI =
-       // rawQ =
+        if (sampleCounter == 0)
+        {
+            ReadConstellation = ReadConstellation % SymbolCount;
+            iteration = StoredQpsk[ReadConstellation];
+            rawI = DAC_ZERO_OFFSET + Iepsk[iteration];
+            rawQ = DAC_ZERO_OFFSET + Qepsk[iteration];
+            ReadConstellation++;
+        }
 
-         writeDacAB(rawI, rawQ);
-        ReadConstellation++;
+        writeDacAB(rawI, rawQ);
+
+        sampleCounter++;
+        sampleCounter %= 2;
+
         break;
     }
     case (qam):
@@ -309,7 +324,7 @@ void numberTransmitted(uint8_t size, uint32_t number)
         SymbolCount = 32; // 32 bits fromm number
         for (BitIndex = 0; BitIndex < 32; BitIndex++)
         {
-            StoredBpsk[BitIndex] = (number >> BitIndex)&1;
+            StoredBpsk[BitIndex] = (number >> BitIndex) & 0x1;//0001
         }
     }
     else if (size == 2)//qpsk
@@ -317,7 +332,7 @@ void numberTransmitted(uint8_t size, uint32_t number)
         SymbolCount = 16;//
         for(BitIndex = 0; BitIndex < 16; BitIndex++)
         {
-            SymbolStored = (number >> (BitIndex * 2)) & 0x03;
+            SymbolStored = (number >> (BitIndex * 2)) & 0x03; //0011
             StoredQpsk[BitIndex] = SymbolStored;
         }
     }
@@ -326,7 +341,7 @@ void numberTransmitted(uint8_t size, uint32_t number)
         SymbolCount = 10;
         for(BitIndex = 0; BitIndex < 10; BitIndex++)
         {
-            SymbolStored = (number >> (BitIndex * 3)) & 0x07;
+            SymbolStored = (number >> (BitIndex * 3)) & 0x07; //0111
             StoredEpsk[BitIndex] = SymbolStored;
         }
     }
@@ -335,26 +350,9 @@ void numberTransmitted(uint8_t size, uint32_t number)
         SymbolCount = 8;
         for(BitIndex = 0; BitIndex < 8; BitIndex++)
         {
-            SymbolStored = (number >> (BitIndex * 4)) & 0x0F;
+            SymbolStored = (number >> (BitIndex * 4)) & 0x0F; //1111
             StoredQam   [BitIndex] = SymbolStored;
         }
     }
 }
-// now volts to dac code
-// when dac gets code the op amp, the outputvoltage is measured
-//when type a voltage compute the dac code
-// write to BOTH at the same time ! Raw?
-/*
- void writeDacAB(uint16_t rawI, uint16_t rawQ)
- {
- //preserve 16 bit and and cleaer to write to correct channel
- uint16_t spitransferA = ((rawI & 0x0FFF) | 0x3000); //configured to A
- uint16_t spitransferB = ((rawQ & 0x0fff) | 0xB000); //configured to B
- // send to both now
- writeSpi1Data(spitransferA);
- writeSpi1Data(spitransferB);
- //latch them
- ldac_off();
- ldac_on();
- }
- */
+

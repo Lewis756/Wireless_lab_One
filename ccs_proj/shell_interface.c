@@ -135,60 +135,67 @@ void shell(void)
         {
             valid = true;
             mode = bpsk;
-            bpskSymbol = 0;
+            numberTransmitted(1, 0x1B1B1B1B);
             putsUart0("\r\n DISPLAYING BPSK \r\n");
 
         }
-        uint32_t sendWord = 0;
-        if (isCommand(&data, "SEND", 2 ))
+        if (isCommand(&data, "QPSK", 0))
         {
             valid = true;
-            char* modulation = getFieldString(&data, 1); // qpsk or bpsk etc
-            char* hexStr = getFieldString(&data, 2); //example FFFFFFFF\
+            mode = qpsk;
+            numberTransmitted(2, 0x1E1E1B1B);
+            putsUart0("\r\n DISPLAYING QPSK \r\n");
+        }
+        uint32_t sendWord = 0;
+        if (isCommand(&data, "SEND", 2))
+        {
+            valid = true;
+            char *modulation = getFieldString(&data, 1); // qpsk or bpsk etc
+            char *hexStr = getFieldString(&data, 2); //example FFFFFFFF\
            // uint32_t sendWord = 0;
 
-            if(!HexToU32(hexStr, &sendWord))
+            if (!HexToU32(hexStr, &sendWord))
             {
-                putsUart0("\r\n Invaluid hex format up to 8 \r\n");
+                putsUart0("\r\n Invalid hex format up to 8 \r\n");
                 valid = false;
             }
             else
             {
-            if (Stringcmpr(modulation, "bpsk"))
-            {
-              numberTransmitted(1, sendWord);
-              mode = bpsk;
-              bpskSymbol = 0;
-              putsUart0("\r\nBPSK word Loaded \r\n");
-            }
-            else if (Stringcmpr(modulation,"qpsk"))
-            {
-                numberTransmitted(2, sendWord);
-                mode = qpsk;
-                ReadConstellation = 0;
-                putsUart0("\r\nQPSK word Loaded \r\n");
-            }
-            else if(Stringcmpr(modulation,"epsk"))
-            {
-                numberTransmitted(3, sendWord);
-                mode = epsk;
-                ReadConstellation = 0;
-                putsUart0("\r\nEPSK word Loaded \r\n");
+                if (Stringcmpr(modulation, "BPSK"))
+                {
+                    numberTransmitted(1, sendWord);
+                    mode = bpsk;
+                    bpskSymbol = 0;
+                    putsUart0("\r\nBPSK word Loaded \r\n");
+                }
+                else if (Stringcmpr(modulation, "QPSK"))
+                {
+                    numberTransmitted(2, sendWord);
+                    mode = qpsk;
+                    ReadConstellation = 0;
+                    putsUart0("\r\nQPSK word Loaded \r\n");
+                }
+                else if (Stringcmpr(modulation, "EPSK"))
+                {
+                    numberTransmitted(3, sendWord);
+                    mode = epsk;
+                    ReadConstellation = 0;
+                    putsUart0("\r\nEPSK word Loaded \r\n");
 
+                }
+                else if (Stringcmpr(modulation, "QAM"))
+                {
+                    numberTransmitted(4, sendWord);
+                    mode = qam;
+                    ReadConstellation = 0;
+                    putsUart0("\r\n16QAM word Loaded \r\n");
+                }
+                else
+                {
+                    putsUart0("\r\nInvalid Modulation \r\n");
+                    valid = false;
+                }
             }
-            else if(Stringcmpr(modulation,"qam"))
-            {
-                numberTransmitted(4,sendWord);
-                mode = qam;
-                ReadConstellation = 0;
-                putsUart0("\r\n16QAM word Loaded \r\n");
-            }
-            else
-            {
-                putsUart0("\r\nInvalide Modulation \r\n");
-                valid = false;
-            }
-         }
         }
         if (!valid)
         {
