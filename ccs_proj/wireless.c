@@ -22,6 +22,42 @@ uint16_t bpskSymbol = 0;
 #define SAMPLE_SINE_WAVE 4095 // samples for cycle
 uint32_t frequency = 10000;
 uint16_t sineDacTable[SAMPLE_SINE_WAVE];
+#define H_GAIN 65536
+// taps below
+int16_t RRCfilter[33] = {    0.0106 * H_GAIN,
+                             0.0058 * H_GAIN,
+                            -0.0097 * H_GAIN,
+                            -0.0214 * H_GAIN,
+                            -0.0188 * H_GAIN,
+                             0.0030 * H_GAIN,
+                             0.0327 * H_GAIN,
+                             0.0471 * H_GAIN,
+                             0.0265 * H_GAIN,
+                            -0.0275 * H_GAIN,
+                            -0.0852 * H_GAIN,
+                            -0.0994 * H_GAIN,
+                            -0.0321 * H_GAIN,
+                             0.1190 * H_GAIN,
+                             0.3110 * H_GAIN,
+                             0.4717 * H_GAIN,
+                             0.5343 * H_GAIN, // Center Tap
+                             0.4717 * H_GAIN,
+                             0.3110 * H_GAIN,
+                             0.1190 * H_GAIN,
+                            -0.0321 * H_GAIN,
+                            -0.0994 * H_GAIN,
+                            -0.0852 * H_GAIN,
+                            -0.0275 * H_GAIN,
+                             0.0265 * H_GAIN,
+                             0.0471 * H_GAIN,
+                             0.0327 * H_GAIN,
+                             0.0030 * H_GAIN,
+                            -0.0188 * H_GAIN,
+                            -0.0214 * H_GAIN,
+                            -0.0097 * H_GAIN,
+                             0.0058 * H_GAIN,
+                             0.0106 * H_GAIN,
+};
 
 int16_t Iqam[16] =
 {
