@@ -1,26 +1,13 @@
 #include "wireless.h"
 #include "gpio.h"
 #include "spi1.h"
-
-//.354 = 730 ish
-//streaming bits/ byes
-// number f symnbols = total bits/ bits per Symbols different cases
-//streaming
-
-#define NUM_BYTES 90 //90bytes x 8Bits = 720/1bitpersymbol=bpsk
-//qpsk 720/2 = 360 symbols
-//8psk 720/3 240 n symbols
-//16Qam 720/4 = 180 symbols
-//uint8_t dataBytes[NUM_BYTES];
-// fror step 13 data values in memory
-// for a 32 bit integer
-
-uint8_t StoredBpsk[32*2]; //BPSK array 32 symbols
-uint8_t StoredQpsk[16*2];//qpsk 2 bits per symbol
+//.354 = 730 ish  maybe needed for mapping?
+// number of symnbols = total bits/ bits per Symbols different cases
+uint8_t StoredBpsk[32*2]; //BPSK array 32 symbols-ish
+uint8_t StoredQpsk[16*2];//qpsk 2bits per symbol-ish
 uint8_t StoredEpsk[10*2 + 1];//epsk 3 bits per symbol
 uint8_t StoredQam[8*2];//qam 4 bits per symbol
-//arrays to store
-
+//arrays to store them
 uint16_t SymbolStored = 0; //isr index
 uint16_t SymbolCount = 0;
 uint8_t mode = 0;
@@ -295,15 +282,7 @@ float mvToV(int16_t millivolts)
     //return volts after calculation
     return volts;
 }
-//random table to fill allray that holds data bytes
-/*void fillDataBytes(void)        // 8 bit data bytes for transmission
- {
- uint16_t i;
- for (i = 0; i < NUM_BYTES; i++)        // 8 bits is a byte
- {
- dataBytes[i] = (uint8_t) rand(); //keeps in range because type cast
- }
- }*/
+
 void sendDacI(float v)
 {
     // uint16_t data = 0;
@@ -332,44 +311,7 @@ void sendDacQ(float v)
     writeSpi1Data(data);
 }
 //hard coded values below
-void bitSymbol(uint8_t size)
-{
-    //bpsk gets one bit
-    uint8_t infoByte, BitIndex;
-    if (size == 1)
-    {   //85 is 01010101
-        infoByte = 85;   //hard coded nice change of values
-        for (BitIndex = 0; BitIndex < 8; BitIndex++)
-        {
-            StoredBpsk[BitIndex] = (infoByte >> BitIndex) & 1;
-            //shift to read lsb to msb
-        }
-    }
-    else if (size == 2) //gets two bits
-    {
-        for (BitIndex = 0; BitIndex < 8; BitIndex++)
-        {
-            StoredQpsk[BitIndex] = (infoByte >> (BitIndex * 2)) & 3; //0011
-            //shift to read lsb to msb
-        }
-    }
-    else if (size == 3)
-    {
-        for (BitIndex = 0; BitIndex < 8; BitIndex++)
-        {
-            StoredEpsk[BitIndex] = (infoByte >> (BitIndex * 3)) & 7; //0111
-            //shift to read lsb to msb
-        }
-    }
-    else if (size == 4)
-    {
-        for (BitIndex = 0; BitIndex < 8; BitIndex++)
-        {
-            StoredQam[BitIndex] = (infoByte >> (BitIndex * 4)) & 15; //1111
-            //shift to read lsb to msb
-        }
-    }
-}
+
 // used for validation of symbols creadted by number hex value passed
 void numberTransmitted(uint8_t size, uint64_t number)
 {

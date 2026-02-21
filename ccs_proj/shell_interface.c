@@ -20,8 +20,6 @@ void shell(void)
 {
     USER_DATA data;
     sine_values();
-    //fillDataBytes();
-    bitSymbol(1);
 
     while (true)
     {
