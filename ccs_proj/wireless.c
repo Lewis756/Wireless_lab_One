@@ -1,18 +1,7 @@
 #include "wireless.h"
 #include "gpio.h"
 #include "spi1.h"
-//.354 = 730 ish  maybe needed for mapping?
-// number of symnbols = total bits/ bits per Symbols different cases
-uint8_t StoredBpsk[32*2]; //BPSK array 32 symbols-ish
-uint8_t StoredQpsk[16*2];//qpsk 2bits per symbol-ish
-uint8_t StoredEpsk[10*2 + 1];//epsk 3 bits per symbol
-uint8_t StoredQam[8*2];//qam 4 bits per symbol
-//arrays to store them
-uint16_t SymbolStored = 0; //isr index
-uint16_t SymbolCount = 0;
 uint8_t mode = 0;
-uint16_t ReadConstellation = 0;
-uint16_t bpskSymbol = 0;
 
 #define DAC_ZERO_OFFSET 2125 //2125 dac value for  zero volts
 #define I_GAIN 1960
@@ -79,25 +68,25 @@ int16_t Iqpsk[4] = {I_GAIN,I_GAIN,-I_GAIN,-I_GAIN};
 int16_t Qqpsk[4] = {Q_GAIN,-Q_GAIN,Q_GAIN,-Q_GAIN};
 
 int16_t Iepsk[8] = {
-    I_GAIN,                 // 0°
-    I_GAIN * 0.7071f,       // 45°
-    0,                      // 90°
-   -I_GAIN * 0.7071f,       // 135°
-   -I_GAIN,                 // 180°
-   -I_GAIN * 0.7071f,       // 225°
-    0,                      // 270°
-    I_GAIN * 0.7071f        // 315°
+    I_GAIN,                 // 0 
+    I_GAIN * 0.7071f,       // 45 
+    0,                      // 90 
+   -I_GAIN * 0.7071f,       // 135 
+   -I_GAIN,                 // 180 
+   -I_GAIN * 0.7071f,       // 225 
+    0,                      // 270 
+    I_GAIN * 0.7071f        // 315 
 };
 
 int16_t Qepsk[8] = {
-    0,                      // 0°
-    Q_GAIN * 0.7071f,       // 45°
-    Q_GAIN,                 // 90°
-    Q_GAIN * 0.7071f,       // 135°
-    0,                      // 180°
-   -Q_GAIN * 0.7071f,       // 225°
-   -Q_GAIN,                 // 270°
-   -Q_GAIN * 0.7071f        // 315°
+    0,                      // 0 
+    Q_GAIN * 0.7071f,       // 45 
+    Q_GAIN,                 // 90 
+    Q_GAIN * 0.7071f,       // 135 
+    0,                      // 180 
+   -Q_GAIN * 0.7071f,       // 225 
+   -Q_GAIN,                 // 270 
+   -Q_GAIN * 0.7071f        // 315 
 };
 
 
@@ -137,12 +126,21 @@ void writeDacAB(uint16_t rawI, uint16_t rawQ)
     ldac_on();
 }
 
-uint64_t r;
-void ISR() //pseudocode for frequency/NCO
-{ //delatphase fixed point angle
-    r = rand();
+uint8_t *txBuffer = 0;      // pointer to user input data
+uint32_t txLength = 0;      // length in bytes
+uint32_t txByteIndex = 0;   // current byte
+uint8_t  txBitIndex = 0;    // current bit inside byte
 
-    uint8_t iteration = 0;
+void setTransmitBuffer(uint8_t *data, uint32_t length)
+{
+    txBuffer = data;
+    txLength = length;
+    txByteIndex = 0;
+    txBitIndex = 0;
+}
+
+void ISR()
+{ 
     switch (mode)
     {
 
@@ -170,86 +168,118 @@ void ISR() //pseudocode for frequency/NCO
         //channel B rawQ sine
         break;
     case (bpsk): //bpsk
-        numberTransmitted(1, r);
+    {
+        if (txByteIndex >= txLength)
+            txByteIndex = 0;   // loop
 
-        if (StoredBpsk[bpskSymbol] == 0)
+        uint8_t currentByte = txBuffer[txByteIndex];
+        uint8_t bit = (currentByte >> txBitIndex) & 0x01;
+
+        if (bit == 0)
         {
             rawI = DAC_ZERO_OFFSET - I_GAIN;
-            rawQ = DAC_ZERO_OFFSET;
-            writeDacAB(rawI, rawQ);
         }
         else
         {
             rawI = DAC_ZERO_OFFSET + I_GAIN;
-            rawQ = DAC_ZERO_OFFSET;
-            writeDacAB(rawI, rawQ);
         }
-        bpskSymbol++;
-        bpskSymbol = bpskSymbol % SymbolCount;
+
+        rawQ = DAC_ZERO_OFFSET;
+        writeDacAB(rawI, rawQ);
+
+        txBitIndex++;
+        if (txBitIndex >= 8)
+        {
+            txBitIndex = 0;
+            txByteIndex++;
+        }
+
         break;
+    }
     case (qpsk):
     {
-        numberTransmitted(2, r);
         static uint8_t sampleCounter = 0;
 
         if (sampleCounter == 0)
         {
-            ReadConstellation = ReadConstellation % SymbolCount;
-            iteration = StoredQpsk[ReadConstellation];
-            rawI = DAC_ZERO_OFFSET + Iqpsk[iteration];
-            rawQ = DAC_ZERO_OFFSET + Qqpsk[iteration];
-            ReadConstellation++;
+            if (txByteIndex >= txLength)
+                txByteIndex = 0;
+
+            uint8_t currentByte = txBuffer[txByteIndex];
+            uint8_t symbol = (currentByte >> txBitIndex) & 0x03;
+
+            rawI = DAC_ZERO_OFFSET + Iqpsk[symbol];
+            rawQ = DAC_ZERO_OFFSET + Qqpsk[symbol];
+
+            txBitIndex += 2;
+            if (txBitIndex >= 8)
+            {
+                txBitIndex = 0;
+                txByteIndex++;
+            }
         }
 
         writeDacAB(rawI, rawQ);
 
-        sampleCounter++;
-        sampleCounter %= 2;
-
+        sampleCounter ^= 1;   // divide symbol rate by 2
         break;
     }
     case (epsk):
     {
-        numberTransmitted(3, r);
-
         static uint8_t sampleCounter = 0;
 
         if (sampleCounter == 0)
         {
-            ReadConstellation = ReadConstellation % SymbolCount;
-            iteration = StoredEpsk[ReadConstellation];
-            rawI = DAC_ZERO_OFFSET + Iepsk[iteration];
-            rawQ = DAC_ZERO_OFFSET + Qepsk[iteration];
-            ReadConstellation++;
+            if (txByteIndex >= txLength)
+                txByteIndex = 0;
+
+            uint8_t currentByte = txBuffer[txByteIndex];
+            uint8_t symbol = (currentByte >> txBitIndex) & 0x07;
+
+            rawI = DAC_ZERO_OFFSET + Iepsk[symbol];
+            rawQ = DAC_ZERO_OFFSET + Qepsk[symbol];
+
+            txBitIndex += 3;
+
+            if (txBitIndex >= 8)
+            {
+                txBitIndex -= 8;
+                txByteIndex++;
+            }
         }
 
         writeDacAB(rawI, rawQ);
 
-        sampleCounter++;
-        sampleCounter %= 2;
-
+        sampleCounter ^= 1;
         break;
     }
     case (qam):
     {
-        numberTransmitted(4, r);
-
         static uint8_t sampleCounter = 0;
 
         if (sampleCounter == 0)
         {
-            ReadConstellation = ReadConstellation % SymbolCount;
-            iteration = StoredQam[ReadConstellation];
-            rawI = DAC_ZERO_OFFSET + Iqam[iteration];
-            rawQ = DAC_ZERO_OFFSET + Qqam[iteration];
-            ReadConstellation++;
+            if (txByteIndex >= txLength)
+                txByteIndex = 0;
+
+            uint8_t currentByte = txBuffer[txByteIndex];
+            uint8_t symbol = (currentByte >> txBitIndex) & 0x0F;
+
+            rawI = DAC_ZERO_OFFSET + Iqam[symbol];
+            rawQ = DAC_ZERO_OFFSET + Qqam[symbol];
+
+            txBitIndex += 4;
+
+            if (txBitIndex >= 8)
+            {
+                txBitIndex = 0;
+                txByteIndex++;
+            }
         }
 
         writeDacAB(rawI, rawQ);
 
-        sampleCounter++;
-        sampleCounter %= 2;
-
+        sampleCounter ^= 1;
         break;
     }
     default:
@@ -348,46 +378,6 @@ void sendDacQ(float v)
 }
 //hard coded values below
 
-// used for validation of symbols creadted by number hex value passed
-void numberTransmitted(uint8_t size, uint64_t number)
-{
-    uint8_t SymbolStored;// extracted symbol
-    uint8_t BitIndex;//looping index
 
-    if (size == 1)//bpsk
-    {
-        SymbolCount = 64; // 32 bits fromm number
-        for (BitIndex = 0; BitIndex < 64; BitIndex++)
-        {
-            StoredBpsk[BitIndex] = (number >> BitIndex) & 0x1;//0001
-        }
-    }
-    else if (size == 2)//qpsk
-    {
-        SymbolCount = 32;//
-        for(BitIndex = 0; BitIndex < 32; BitIndex++)
-        {
-            SymbolStored = (number >> (BitIndex * 2)) & 0x03; //0011
-            StoredQpsk[BitIndex] = SymbolStored;
-        }
-    }
-    else if (size == 3) // 8psk
-    {
-        SymbolCount = 21;
-        for(BitIndex = 0; BitIndex < 21; BitIndex++)
-        {
-            SymbolStored = (number >> (BitIndex * 3)) & 0x07; //0111
-            StoredEpsk[BitIndex] = SymbolStored;
-        }
-    }
-    else if (size == 4) // qam
-    {
-        SymbolCount = 16;
-        for(BitIndex = 0; BitIndex < 16; BitIndex++)
-        {
-            SymbolStored = (number >> (BitIndex * 4)) & 0x0F; //1111
-            StoredQam   [BitIndex] = SymbolStored;
-        }
-    }
-}
+
 

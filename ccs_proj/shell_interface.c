@@ -16,10 +16,18 @@ extern uint32_t delta_phase;
 extern uint16_t bpskSymbol;
 extern uint16_t ReadConstellation;
 
+uint8_t input[256];
+
 void shell(void)
 {
     USER_DATA data;
     sine_values();
+    int i;
+    for(i = 0; i < 256; i++)
+    {
+        input[i] = rand();
+    }
+    setTransmitBuffer(input, 256);
 
     while (true)
     {
@@ -133,82 +141,27 @@ void shell(void)
         {
             valid = true;
             mode = bpsk;
-          //  numberTransmitted(1, 0x1B1B1B1B);
             putsUart0("\r\n DISPLAYING BPSK \r\n");
-
         }
         if (isCommand(&data, "QPSK", 0))
         {
             valid = true;
             mode = qpsk;
-           // numberTransmitted(2, 0x1E1E1B1B);
             putsUart0("\r\n DISPLAYING QPSK \r\n");
         }
         if (isCommand(&data, "EPSK", 0))
         {
             valid = true;
             mode = epsk;
-          //  numberTransmitted(3, 0xFAC688FAC688FAC6);
             putsUart0("\r\n DISPLAYING EPSK \r\n");
         }
         if (isCommand(&data, "QAM", 0))
         {
             valid = true;
             mode = qam;
-           // numberTransmitted(4, 0xFEDCBA9876543210);
             putsUart0("\r\n DISPLAYING QAM \r\n");
         }
-        uint32_t sendWord = 0;
-        if (isCommand(&data, "SEND", 2))
-        {
-            valid = true;
-            char *modulation = getFieldString(&data, 1); // qpsk or bpsk etc
-            char *hexStr = getFieldString(&data, 2); //example FFFFFFFF\
-           // uint32_t sendWord = 0;
 
-            if (!HexToU32(hexStr, &sendWord))
-            {
-                putsUart0("\r\n Invalid hex format up to 8 \r\n");
-                valid = false;
-            }
-            else
-            {
-                if (Stringcmpr(modulation, "BPSK"))
-                {
-                    numberTransmitted(1, sendWord);
-                    mode = bpsk;
-                    bpskSymbol = 0;
-                    putsUart0("\r\nBPSK word Loaded \r\n");
-                }
-                else if (Stringcmpr(modulation, "QPSK"))
-                {
-                    numberTransmitted(2, sendWord);
-                    mode = qpsk;
-                    ReadConstellation = 0;
-                    putsUart0("\r\nQPSK word Loaded \r\n");
-                }
-                else if (Stringcmpr(modulation, "EPSK"))
-                {
-                    numberTransmitted(3, sendWord);
-                    mode = epsk;
-                    ReadConstellation = 0;
-                    putsUart0("\r\nEPSK word Loaded \r\n");
-
-                }
-                else if (Stringcmpr(modulation, "QAM"))
-                {
-                    numberTransmitted(4, sendWord);
-                    mode = qam;
-                    ReadConstellation = 0;
-                    putsUart0("\r\n16QAM word Loaded \r\n");
-                }
-                else
-                {
-                    putsUart0("\r\nInvalid Modulation \r\n");
-                    valid = false;
-                }
-            }
-        }
         if (!valid)
         {
             putsUart0(": Invalid command \r\n");

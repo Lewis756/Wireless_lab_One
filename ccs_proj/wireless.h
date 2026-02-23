@@ -22,14 +22,12 @@ extern float dcI;
 extern float dcQ;
 extern uint8_t mode;
 extern uint16_t data;
-
+void setTransmitBuffer(uint8_t *data, uint32_t length);
 void sendDacI(float v);
 void sendDacQ(float v);
 void writeDacAB(uint16_t rawI, uint16_t rawQ);
 void ISR();
-void bitSymbol(uint8_t size);
 float mvToV(int16_t millivolts);
-void numberTransmitted(uint8_t size, uint64_t number);
 void setPhase(uint32_t fout);
 void sine_values();
 uint16_t voltageToDacCode(float v);

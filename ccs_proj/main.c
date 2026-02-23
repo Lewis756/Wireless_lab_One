@@ -12,7 +12,7 @@
 //initialize hardware
 void intHW()
 {
-    initSystemClockTo40Mhz();
+    initSystemClockTo80Mhz();
     initUart0();
     initSpi1(USE_SSI_FSS);
     setSpi1BaudRate(20e6, 40e6);
