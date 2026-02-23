@@ -13,93 +13,71 @@ uint32_t frequency = 10000;
 uint16_t sineDacTable[SAMPLE_SINE_WAVE];
 #define H_GAIN 65536
 // taps below
-int16_t RRCfilter[33] = {    0.0106 * H_GAIN,
-                             0.0058 * H_GAIN,
-                            -0.0097 * H_GAIN,
-                            -0.0214 * H_GAIN,
-                            -0.0188 * H_GAIN,
-                             0.0030 * H_GAIN,
-                             0.0327 * H_GAIN,
-                             0.0471 * H_GAIN,
-                             0.0265 * H_GAIN,
-                            -0.0275 * H_GAIN,
-                            -0.0852 * H_GAIN,
-                            -0.0994 * H_GAIN,
-                            -0.0321 * H_GAIN,
-                             0.1190 * H_GAIN,
-                             0.3110 * H_GAIN,
-                             0.4717 * H_GAIN,
-                             0.5343 * H_GAIN, // Center Tap
-                             0.4717 * H_GAIN,
-                             0.3110 * H_GAIN,
-                             0.1190 * H_GAIN,
-                            -0.0321 * H_GAIN,
-                            -0.0994 * H_GAIN,
-                            -0.0852 * H_GAIN,
-                            -0.0275 * H_GAIN,
-                             0.0265 * H_GAIN,
-                             0.0471 * H_GAIN,
-                             0.0327 * H_GAIN,
-                             0.0030 * H_GAIN,
-                            -0.0188 * H_GAIN,
-                            -0.0214 * H_GAIN,
-                            -0.0097 * H_GAIN,
-                             0.0058 * H_GAIN,
-                             0.0106 * H_GAIN,
-};
+int16_t RRCfilter[33] = { 0.0106 * H_GAIN, 0.0058 * H_GAIN, -0.0097 * H_GAIN,
+                          -0.0214 * H_GAIN, -0.0188 * H_GAIN, 0.0030 * H_GAIN,
+                          0.0327 * H_GAIN, 0.0471 * H_GAIN, 0.0265 * H_GAIN,
+                          -0.0275 * H_GAIN,
+                          -0.0852 * H_GAIN,
+                          -0.0994 * H_GAIN,
+                          -0.0321 * H_GAIN,
+                          0.1190 * H_GAIN,
+                          0.3110 * H_GAIN,
+                          0.4717 * H_GAIN,
+                          0.5343 * H_GAIN, // Center Tap
+                          0.4717 * H_GAIN, 0.3110 * H_GAIN, 0.1190 * H_GAIN,
+                          -0.0321 * H_GAIN, -0.0994 * H_GAIN, -0.0852 * H_GAIN,
+                          -0.0275 * H_GAIN, 0.0265 * H_GAIN, 0.0471 * H_GAIN,
+                          0.0327 * H_GAIN, 0.0030 * H_GAIN, -0.0188 * H_GAIN,
+                          -0.0214 * H_GAIN, -0.0097 * H_GAIN, 0.0058 * H_GAIN,
+                          0.0106 * H_GAIN, };
 
-int16_t Iqam[16] =
-{
-     I_GAIN,      I_GAIN,      I_GAIN,      I_GAIN,
-     I_GAIN/3,    I_GAIN/3,    I_GAIN/3,    I_GAIN/3,
-    -I_GAIN/3,   -I_GAIN/3,   -I_GAIN/3,   -I_GAIN/3,
-    -I_GAIN,     -I_GAIN,     -I_GAIN,     -I_GAIN
-};
+int16_t Iqam[16] = {
+I_GAIN,
+                     I_GAIN, I_GAIN, I_GAIN,
+                     I_GAIN / 3,
+                     I_GAIN / 3, I_GAIN / 3, I_GAIN / 3, -I_GAIN / 3, -I_GAIN
+                             / 3,
+                     -I_GAIN / 3, -I_GAIN / 3, -I_GAIN, -I_GAIN, -I_GAIN,
+                     -I_GAIN };
 
-int16_t Qqam[16] =
-{
-     Q_GAIN,      Q_GAIN/3,   -Q_GAIN/3,   -Q_GAIN,
-     Q_GAIN,      Q_GAIN/3,   -Q_GAIN/3,   -Q_GAIN,
-     Q_GAIN,      Q_GAIN/3,   -Q_GAIN/3,   -Q_GAIN,
-     Q_GAIN,      Q_GAIN/3,   -Q_GAIN/3,   -Q_GAIN
-};
+int16_t Qqam[16] = {
+Q_GAIN,
+                     Q_GAIN / 3, -Q_GAIN / 3, -Q_GAIN,
+                     Q_GAIN,
+                     Q_GAIN / 3, -Q_GAIN / 3, -Q_GAIN,
+                     Q_GAIN,
+                     Q_GAIN / 3, -Q_GAIN / 3, -Q_GAIN,
+                     Q_GAIN,
+                     Q_GAIN / 3, -Q_GAIN / 3, -Q_GAIN };
 
-int16_t Iqpsk[4] = {I_GAIN,I_GAIN,-I_GAIN,-I_GAIN};
-int16_t Qqpsk[4] = {Q_GAIN,-Q_GAIN,Q_GAIN,-Q_GAIN};
+int16_t Iqpsk[4] = { I_GAIN, I_GAIN, -I_GAIN, -I_GAIN };
+int16_t Qqpsk[4] = { Q_GAIN, -Q_GAIN, Q_GAIN, -Q_GAIN };
 
 int16_t Iepsk[8] = {
-    I_GAIN,                 // 0 
-    I_GAIN * 0.7071f,       // 45 
-    0,                      // 90 
-   -I_GAIN * 0.7071f,       // 135 
-   -I_GAIN,                 // 180 
-   -I_GAIN * 0.7071f,       // 225 
-    0,                      // 270 
-    I_GAIN * 0.7071f        // 315 
+I_GAIN,                 // 0 
+        I_GAIN * 0.7071f,       // 45 
+        0,                      // 90 
+        -I_GAIN * 0.7071f,       // 135 
+        -I_GAIN,                 // 180 
+        -I_GAIN * 0.7071f,       // 225 
+        0,                      // 270 
+        I_GAIN * 0.7071f        // 315 
 };
 
-int16_t Qepsk[8] = {
-    0,                      // 0 
-    Q_GAIN * 0.7071f,       // 45 
-    Q_GAIN,                 // 90 
-    Q_GAIN * 0.7071f,       // 135 
-    0,                      // 180 
-   -Q_GAIN * 0.7071f,       // 225 
-   -Q_GAIN,                 // 270 
-   -Q_GAIN * 0.7071f        // 315 
+int16_t Qepsk[8] = { 0,                      // 0 
+        Q_GAIN * 0.7071f,       // 45 
+        Q_GAIN,                 // 90 
+        Q_GAIN * 0.7071f,       // 135 
+        0,                      // 180 
+        -Q_GAIN * 0.7071f,       // 225 
+        -Q_GAIN,                 // 270 
+        -Q_GAIN * 0.7071f        // 315 
 };
-
-
-#define FS 100000 //this number represents sample frequency, how many discrete points of the wave we calculate
 
 uint32_t phase = 0;
 uint32_t delta_phase = 0;
 uint32_t freq_o = 5000; //this is the frequency of the actual wave
 
-void setPhase(uint32_t fout)
-{
-    phase = (uint32_t) (((float) fout / FS) * 4294967295); //phase is a function of the desired wave freq/sampling freq * 2^32
-}
 void ldac_on()
 {
     setPinValue(PORTF, 1, 1);
@@ -129,7 +107,7 @@ void writeDacAB(uint16_t rawI, uint16_t rawQ)
 uint8_t *txBuffer = 0;      // pointer to user input data
 uint32_t txLength = 0;      // length in bytes
 uint32_t txByteIndex = 0;   // current byte
-uint8_t  txBitIndex = 0;    // current bit inside byte
+uint8_t txBitIndex = 0;    // current bit inside byte
 
 void setTransmitBuffer(uint8_t *data, uint32_t length)
 {
@@ -139,68 +117,79 @@ void setTransmitBuffer(uint8_t *data, uint32_t length)
     txBitIndex = 0;
 }
 
+volatile uint32_t symbolRate = 1000;        // default 1 ksym/sec
+volatile uint32_t samplesPerSymbol = 100;   // FS / symbolRate
+volatile uint32_t sampleTick = 0;
+void setPhase(uint32_t fout)
+{
+    phase = (uint32_t) (((float) fout / (100000) * 4294967296)); //phase is a function of the desired wave freq/sampling freq * 2^32
+}
+
+void setSymbolRate(uint32_t rate)
+{
+    if (rate == 0)
+        return;
+
+    symbolRate = rate;
+
+    samplesPerSymbol = 100000 / symbolRate;
+
+    if (samplesPerSymbol == 0)
+        samplesPerSymbol = 1;   // prevent invalid case
+
+    sampleTick = 0;
+}
+
 void ISR()
-{ 
+{
     switch (mode)
     {
+    case (sine):
+        delta_phase += phase;
 
-    case (sine): //sincos
+        phaseCosine = ((delta_phase + 1073741824) >> 20);
+        phaseSine = (delta_phase >> 20);
 
-        delta_phase += phase; //2^32delathase/2^20 to get 12 bits
-        //Phase how much angle moves each smaple
-        //deltaphase current angle
-        //  phaseSine = (delta_phase >> 20);   // 12 bits 2^12 4096 matches sample
-        //phase space 0-2^32-1
-        //0-360degree represented
-        //360 degree = 2^32
-        //cosine 90 degree offset 90= 1/4 of the way through unit circle
-        //90 = (1/4)*(2^32)/4 = 2^32/2^2 = 2^30 =1073741824
-        phaseCosine = ((delta_phase + 1073741824) >> 20); //adds the offset and keeps 12 bits msb only
-        phaseSine = ((delta_phase >> 20));
         rawI = sineDacTable[phaseCosine];
         rawQ = sineDacTable[phaseSine];
 
         writeDacAB(rawI, rawQ);
-        //m,sb impoartant 1^12
-        //2^12 4096 entries
-        // theta = (delta_phase >> 22); //use first 10 bits
-        // now channel A rawI cosine
-        //channel B rawQ sine
         break;
-    case (bpsk): //bpsk
+
+    case (bpsk):
     {
-        if (txByteIndex >= txLength)
-            txByteIndex = 0;   // loop
-
-        uint8_t currentByte = txBuffer[txByteIndex];
-        uint8_t bit = (currentByte >> txBitIndex) & 0x01;
-
-        if (bit == 0)
+        if (sampleTick == 0)
         {
-            rawI = DAC_ZERO_OFFSET - I_GAIN;
-        }
-        else
-        {
-            rawI = DAC_ZERO_OFFSET + I_GAIN;
+            if (txByteIndex >= txLength)
+                txByteIndex = 0;
+
+            uint8_t currentByte = txBuffer[txByteIndex];
+            uint8_t bit = (currentByte >> txBitIndex) & 0x01;
+
+            if (bit == 0)
+                rawI = DAC_ZERO_OFFSET - I_GAIN;
+            else
+                rawI = DAC_ZERO_OFFSET + I_GAIN;
+
+            rawQ = DAC_ZERO_OFFSET;
+
+            txBitIndex++;
+            if (txBitIndex >= 8)
+            {
+                txBitIndex = 0;
+                txByteIndex++;
+            }
         }
 
-        rawQ = DAC_ZERO_OFFSET;
         writeDacAB(rawI, rawQ);
-
-        txBitIndex++;
-        if (txBitIndex >= 8)
-        {
-            txBitIndex = 0;
-            txByteIndex++;
-        }
-
+        sampleTick++;
+        if (sampleTick >= samplesPerSymbol)
+            sampleTick = 0;
         break;
     }
     case (qpsk):
     {
-        static uint8_t sampleCounter = 0;
-
-        if (sampleCounter == 0)
+        if (sampleTick == 0)
         {
             if (txByteIndex >= txLength)
                 txByteIndex = 0;
@@ -220,15 +209,14 @@ void ISR()
         }
 
         writeDacAB(rawI, rawQ);
-
-        sampleCounter ^= 1;   // divide symbol rate by 2
+        sampleTick++;
+        if (sampleTick >= samplesPerSymbol)
+            sampleTick = 0;
         break;
     }
     case (epsk):
     {
-        static uint8_t sampleCounter = 0;
-
-        if (sampleCounter == 0)
+        if (sampleTick == 0)
         {
             if (txByteIndex >= txLength)
                 txByteIndex = 0;
@@ -240,7 +228,6 @@ void ISR()
             rawQ = DAC_ZERO_OFFSET + Qepsk[symbol];
 
             txBitIndex += 3;
-
             if (txBitIndex >= 8)
             {
                 txBitIndex -= 8;
@@ -249,15 +236,14 @@ void ISR()
         }
 
         writeDacAB(rawI, rawQ);
-
-        sampleCounter ^= 1;
+        sampleTick++;
+        if (sampleTick >= samplesPerSymbol)
+            sampleTick = 0;
         break;
     }
     case (qam):
     {
-        static uint8_t sampleCounter = 0;
-
-        if (sampleCounter == 0)
+        if (sampleTick == 0)
         {
             if (txByteIndex >= txLength)
                 txByteIndex = 0;
@@ -269,7 +255,6 @@ void ISR()
             rawQ = DAC_ZERO_OFFSET + Qqam[symbol];
 
             txBitIndex += 4;
-
             if (txBitIndex >= 8)
             {
                 txBitIndex = 0;
@@ -278,8 +263,9 @@ void ISR()
         }
 
         writeDacAB(rawI, rawQ);
-
-        sampleCounter ^= 1;
+        sampleTick++;
+        if (sampleTick >= samplesPerSymbol)
+            sampleTick = 0;
         break;
     }
     default:
@@ -292,10 +278,10 @@ void ISR()
 //uint16_t rawQ = 2125; //0v
 //float dcI = 0.0f;
 //float dcQ = 0.0f;
- uint16_t rawI;
- uint16_t rawQ;
- float dcI;
- float dcQ;
+uint16_t rawI;
+uint16_t rawQ;
+float dcI;
+float dcQ;
 
 uint16_t voltageToDacCode(float v)
 {
@@ -377,7 +363,4 @@ void sendDacQ(float v)
     writeSpi1Data(data);
 }
 //hard coded values below
-
-
-
 

@@ -28,9 +28,10 @@ void shell(void)
         input[i] = rand();
     }
     setTransmitBuffer(input, 256);
-
     while (true)
     {
+        putcUart0('>');
+
         getsUart0(&data);
         parseFields(&data);
         bool valid = false;
@@ -133,7 +134,7 @@ void shell(void)
         {
             valid = true;
             mode = sine;
-            delta_phase = 0;
+            setPhase(10000);
             putsUart0("\r\n DISPLAYING SIN COS \r\n");
 
         }
@@ -161,10 +162,30 @@ void shell(void)
             mode = qam;
             putsUart0("\r\n DISPLAYING QAM \r\n");
         }
+        if (isCommand(&data, "OFF", 0))
+        {
+            valid = true;
+            putsUart0("\r\n OFF \r\n");
+            mode = dc;
+        }
+        if (isCommand(&data, "RATE", 2))
+        {
+            valid = true;
 
+            int32_t value = getFieldInteger(&data, 1);
+
+            setSymbolRate(value);
+            putsUart0("\r\n TRANSMISSION RATE SET \r\n");
+        }
+        if (isCommand(&data, "FILTER", 0))
+        {
+            valid = true;
+            putsUart0("\r\n FILTERING TURNED ON \r\n");
+         //   setfilterStatus(1);
+        }
         if (!valid)
         {
-            putsUart0(": Invalid command \r\n");
+            putsUart0("\r\n ERROR: Invalid command \r\n");
         }
         //  putsUart0("\r\nOk\r\n");
     }

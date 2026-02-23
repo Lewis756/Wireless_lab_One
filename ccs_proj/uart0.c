@@ -53,8 +53,8 @@ void initUart0()
     // Configure UART0 to 115200 baud, 8N1 format
     UART0_CTL_R = 0;                                    // turn-off UART0 to allow safe programming
     UART0_CC_R = UART_CC_CS_SYSCLK;                     // use system clock (40 MHz)
-    UART0_IBRD_R = 21;                                  // r = 40 MHz / (Nx115.2kHz), set floor(r)=21, where N=16
-    UART0_FBRD_R = 45;                                  // round(fract(r)*64)=45
+    UART0_IBRD_R = 43;                                  // r = 40 MHz / (Nx115.2kHz), set floor(r)=21, where N=16
+    UART0_FBRD_R = 26;                                   // round(fract(r)*64)=45
     UART0_LCRH_R = UART_LCRH_WLEN_8 | UART_LCRH_FEN;    // configure for 8N1 w/ 16-level FIFO
     UART0_CTL_R = UART_CTL_TXE | UART_CTL_RXE | UART_CTL_UARTEN;
                                                         // enable TX, RX, and module
@@ -92,7 +92,7 @@ void putsUart0(char* str)
 // Blocking function that returns with serial data once the buffer is not empty
 char getcUart0() // modified getcUart0
 {
-    //add the message “FIFO FULL” when overflow
+    //add the message â€œFIFO FULLâ€� when overflow
     // wait if uart0 rx fifo empty
   // if(UART0_FR_R & UART_FR_RXFF)
  //   { //fe empty

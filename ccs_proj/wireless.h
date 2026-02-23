@@ -8,12 +8,7 @@
 
 typedef enum
 {
-    dc = 100,
-    sine = 0,
-    bpsk = 1,
-    qpsk = 2,
-    epsk  = 3,
-    qam = 4
+    dc = 100, sine = 0, bpsk = 1, qpsk = 2, epsk = 3, qam = 4
 } MODE;
 
 extern uint16_t rawI;
@@ -31,7 +26,6 @@ float mvToV(int16_t millivolts);
 void setPhase(uint32_t fout);
 void sine_values();
 uint16_t voltageToDacCode(float v);
-
-
+void setSymbolRate(uint32_t rate);
 
 #endif /* WIRELESS_H_ */
