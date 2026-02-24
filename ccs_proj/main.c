@@ -25,7 +25,7 @@ void intHW()
 }
 
 int main()
-{   
+{
     intHW();
     shell();
     putsUart0("\r\n READY \r\n");

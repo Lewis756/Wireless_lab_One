@@ -6,9 +6,7 @@
 #include <math.h>
 #include <stdlib.h>
 
-// -------------------- Original globals --------------------
-
-uint8_t mode = 0;
+MODE mode = dc;
 
 #define DAC_ZERO_OFFSET 2125 //2125 dac value for  zero volts
 #define I_GAIN 1960
@@ -106,10 +104,10 @@ void writeDacAB(uint16_t rawI, uint16_t rawQ)
     ldac_on();
 }
 
-uint8_t *txBuffer = 0;      // pointer to user input data
-uint32_t txLength = 0;      // length in bytes
+uint8_t *txBuffer = 0;      // pointer to user input
+uint32_t txLength = 0;      // byte length
 uint32_t txByteIndex = 0;   // current byte
-uint8_t txBitIndex = 0;     // current bit inside byte
+uint8_t txBitIndex = 0;     // current bit of byte
 
 void setTransmitBuffer(uint8_t *data, uint32_t length)
 {
@@ -119,16 +117,16 @@ void setTransmitBuffer(uint8_t *data, uint32_t length)
     txBitIndex = 0;
 }
 
-volatile uint32_t symbolRate = 1000;        // default 1 ksym/sec
+volatile uint32_t symbolRate = 1000;
 volatile uint32_t samplesPerSymbol = 100;   // FS / symbolRate
 volatile uint32_t sampleTick = 0;
 
 void setPhase(uint32_t fout)
 {
-    phase = (uint32_t)(((float)fout / (FS) * 4294967296.0f));
+    phase = (uint32_t)(((float)fout / (FS) * 4294967296.0f)); // fo/fs * 2^32
 }
 
-void setSymbolRate(uint32_t rate)
+void setSymbolRate(uint32_t rate) //number of symbols sent/sec
 {
     if (rate == 0)
         return;
@@ -142,29 +140,7 @@ void setSymbolRate(uint32_t rate)
     sampleTick = 0;
 }
 
-bool filter = false;
-
-// -------------------- ADD: Mode constants (only if not already defined) --------------------
-#ifndef sine
-#define sine  0
-#endif
-#ifndef bpsk
-#define bpsk  1
-#endif
-#ifndef qpsk
-#define qpsk  2
-#endif
-#ifndef epsk
-#define epsk  3
-#endif
-#ifndef qam
-#define qam   4
-#endif
-#ifndef dc
-#define dc    5
-#endif
-
-// -------------------- Original DAC helper stuff --------------------
+bool filter = false; //filter is default off
 
 uint16_t rawI = DAC_ZERO_OFFSET;
 uint16_t rawQ = DAC_ZERO_OFFSET;
@@ -213,8 +189,6 @@ void sendDacQ(float v)
     uint16_t data = (dacCode & 0x0FFF) | 0xB000;
     writeSpi1Data(data);
 }
-
-// -------------------- FILTERING SUPPORT --------------------
 
 #define RRC_TAPS   33
 #define UPSAMPLE   4
@@ -275,7 +249,7 @@ static void rrcOutputToDac(void)
         int32_t dacI = (int32_t)DAC_ZERO_OFFSET + outI;
         int32_t dacQ = (int32_t)DAC_ZERO_OFFSET + outQ;
 
-        writeDacAB(clamp12(dacI), clamp12(dacQ));
+        writeDacAB((clamp12(dacI)), (clamp12(dacQ)));
     }
 }
 
@@ -354,24 +328,21 @@ static void getNextSymbolIQ(void)
     }
 }
 
-// IMPORTANT: match your shell call setFilterStatus(1);
 void setFilterStatus(void)
 {
     filter = !filter;   // toggle on/off
 
-    // reset pipeline each time you toggle
     rrcInit();
     upPhase = 0;
     symI = 0;
     symQ = 0;
 
-    // also reset symbol timing so it starts clean
     sampleTick = 0;
 }
-// -------------------- ISR --------------------
+
 void ISR(void)
 {
-    if (mode == sine)
+    if (mode == sine) //sin/cos waves
     {
         delta_phase += phase;
 
@@ -385,10 +356,9 @@ void ISR(void)
         return;
     }
 
-    // Filtered constellation modes
     if ((mode == bpsk) || (mode == qpsk) || (mode == epsk) || (mode == qam))
     {
-        if (filter)
+        if (filter) //do filtering if its on
         {
             if (sampleTick == 0)
             {
@@ -397,7 +367,7 @@ void ISR(void)
             }
 
             if (upPhase == 0)
-                rrcShiftIn(symI, symQ);
+                rrcShiftIn(symI,symQ);
             else
                 rrcShiftIn(0, 0);
 
@@ -415,8 +385,7 @@ void ISR(void)
         }
     }
 
-    // Original unfiltered behavior
-    if (mode == bpsk)
+    if (mode == bpsk) //unfiltered
     {
         if (sampleTick == 0)
         {
