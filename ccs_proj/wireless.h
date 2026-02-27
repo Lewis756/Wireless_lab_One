@@ -7,7 +7,7 @@
 
 typedef enum
 {
-    dc = 100, sine = 0, bpsk = 1, qpsk = 2, epsk = 3, qam = 4
+    dc = 100, sine = 0, bpsk = 1, qpsk = 2, epsk = 3, qam = 4, tone = 5
 } MODE;
 
 extern uint16_t rawI;

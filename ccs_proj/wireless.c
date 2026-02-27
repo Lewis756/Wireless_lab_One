@@ -202,7 +202,18 @@ void ISR()
         writeDacAB(rawI, rawQ);
         break;
     }
+    case (tone):
+    {
+        delta_phase += phase;
 
+        theta = (delta_phase >> 20);
+
+        rawI = sineDacTable[theta];
+        rawQ = DAC_ZERO_OFFSET;
+
+        writeDacAB(rawI, rawQ);
+        break;
+    }
     case (bpsk):
     {
         int16_t symbolI = 0;
