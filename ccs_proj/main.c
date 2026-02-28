@@ -14,6 +14,7 @@
 void intHW()
 {
     initSystemClockTo80Mhz();
+
     initUart0();
     initSpi1(USE_SSI_FSS);
     setSpi1BaudRate(20e6, 80e6);

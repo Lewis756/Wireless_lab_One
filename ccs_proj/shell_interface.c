@@ -91,12 +91,14 @@ void shell(void)
                     dcI = temp;
                     rawI = voltageToDacCode(dcI);
                     putsUart0("\r\n DC I set \r\n");
+                    mode = dc;
                 }
                 else
                 {
                     dcQ = temp;
                     rawQ = voltageToDacCode(dcQ);
                     putsUart0("\r\n DC Q set \r\n");
+                    mode = dc;
                 }
                 writeDacAB(rawI, rawQ);
             }

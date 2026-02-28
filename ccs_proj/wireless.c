@@ -10,7 +10,7 @@ MODE mode = dc;
 #define Q_GAIN 1960
 
 #define PI 3.14159265359f
-#define SAMPLE_SINE_WAVE 4095 // samples for cycle
+#define SAMPLE_SINE_WAVE 4096 // samples for cycle
 uint32_t frequency = 10000;
 uint16_t sineDacTable[SAMPLE_SINE_WAVE];
 #define H_GAIN 65536
